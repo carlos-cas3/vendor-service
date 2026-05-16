@@ -11,6 +11,7 @@ class VendorRepository {
                     vendor_email: data.email,
                     vendor_phone: data.phone,
                     vendor_address: data.address,
+                    user_id: data.userId,
                 },
             ])
             .select()
@@ -49,17 +50,17 @@ class VendorRepository {
     }
 
     async findAll(filters = {}) {
-        let query = supabase.from("vendors").select("*");
+        let query = supabase.from("vendors").select(`
+            *,
+            vendor_categories(
+                category_id,
+                categories(category_name)
+            )
+        `);
 
-        if (filters.status) {
-            query = query.eq("status", filters.status);
-        }
-        if (filters.email) {
-            query = query.eq("email", filters.email);
-        }
-        if (filters.tax_id) {
-            query = query.eq("tax_id", filters.tax_id);
-        }
+        if (filters.status) query = query.eq("vendor_status", filters.status);
+        if (filters.email) query = query.eq("vendor_email", filters.email);
+        if (filters.tax_id) query = query.eq("vendor_ruc", filters.tax_id);
 
         query = query.order("created_at", { ascending: false });
 
@@ -120,13 +121,23 @@ class VendorRepository {
     async updateStatus(id, status) {
         const { data: vendor, error } = await supabase
             .from("vendors")
-            .update({ status, updated_at: new Date() })
+            .update({ vendor_status: status, updated_at: new Date() })
             .eq("vendor_id", id)
             .select()
             .single();
 
         if (error) throw error;
         return vendor;
+    }
+
+    async findCategoriesByVendorId(vendorId) {
+        const { data, error } = await supabase
+            .from("vendor_categories")
+            .select("category_id, categories(category_name)")
+            .eq("vendor_id", vendorId);
+
+        if (error) throw error;
+        return data;
     }
 }
 

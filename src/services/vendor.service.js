@@ -1,5 +1,6 @@
 const vendorRepository = require("../repositories/vendor.repository");
 const { ValidationError, NotFoundError } = require("../utils/errors");
+const axios = require("axios");
 
 class VendorService {
     async createVendor(data) {
@@ -11,6 +12,9 @@ class VendorService {
                 data.categories,
             );
         }
+
+        console.log("data recibida en vendor.create:", data); // ← ver si llega userId
+        console.log("user_id a insertar:", data.userId);
 
         return vendor;
     }
@@ -52,7 +56,7 @@ class VendorService {
         return vendorRepository.update(id, data);
     }
 
-    async updateStatus(id, status) {  
+    async updateStatus(id, status) {
         const validStatuses = ["PENDING", "ACTIVE", "INACTIVE", "SUSPENDED"];
         if (!validStatuses.includes(status)) {
             throw new ValidationError(
@@ -60,14 +64,26 @@ class VendorService {
             );
         }
 
-        await this.findById(id);
+        const vendor = await this.findById(id);
+        const updated = await vendorRepository.updateStatus(id, status);
 
-        return vendorRepository.updateStatus(id, status);
+        if (vendor.user_id) {
+            try {
+                await axios.patch(
+                    `http://localhost:3006/api/auth/users/${vendor.user_id}/status`,
+                    { status },
+                );
+            } catch (error) {
+                console.error("Error notificando auth-service:", error.message);
+            }
+        }
+
+        return updated;
     }
 
     async getStatus(id) {
         const vendor = await this.findById(id);
-        return { vendor_id: vendor.vendor_id, status: vendor.status };
+        return { vendor_id: vendor.vendor_id, status: vendor.vendor_status };
     }
 
     _validateCreate(data) {
