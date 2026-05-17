@@ -9,23 +9,23 @@ const router = Router();
 // Interno (con auth)
 router.post('/', vendorController.create);
 router.get('/', vendorController.findAll);
-router.get('/:id', vendorController.findById);
-router.put('/:id', vendorController.update);
-router.patch('/:id/status', vendorController.updateStatus);
+router.get('/:vendor_id', vendorController.findById);
+router.put('/:vendor_id', vendorController.update);
+router.patch('/:vendor_id/status', vendorController.updateStatus);
 
 // Externo (para otros MS)
-router.get('/:id/status', vendorController.getStatus);
+router.get('/:vendor_id/status', vendorController.getStatus);
 
 // ==================== BRANCHES ====================
 
-router.post('/:vendorId/branches', branchController.create);
-router.get('/:vendorId/branches', branchController.findByVendorId);
+router.post('/:vendor_id/branches', branchController.create);
+router.get('/:vendor_id/branches', branchController.findByVendorId);
 
 // Rutas directas de branch (fuera de /vendors)
 const directBranchRouter = Router();
-directBranchRouter.get('/branches/:id', branchController.findById);
-directBranchRouter.put('/branches/:id', branchController.update);
-directBranchRouter.patch('/branches/:id/status', branchController.updateStatus);
-directBranchRouter.delete('/branches/:id', branchController.delete);
+directBranchRouter.get('/branches/:branch_id', branchController.findById);
+directBranchRouter.put('/branches/:branch_id', branchController.update);
+directBranchRouter.patch('/branches/:branch_id/status', branchController.updateStatus);
+directBranchRouter.delete('/branches/:branch_id', branchController.delete);
 
 module.exports = { router, directBranchRouter };

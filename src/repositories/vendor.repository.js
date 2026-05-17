@@ -2,18 +2,18 @@ const supabase = require("../database/connection");
 
 class VendorRepository {
     async create(data) {
+        const payload = {
+            vendor_name: data.vendor_name,
+            vendor_ruc: data.vendor_ruc,
+            vendor_email: data.vendor_email,
+            vendor_phone: data.vendor_phone,
+            vendor_address: data.vendor_address,
+            user_id: data.user_id,
+        };
+
         const { data: vendor, error } = await supabase
             .from("vendors")
-            .insert([
-                {
-                    vendor_name: data.name,
-                    vendor_ruc: data.ruc,
-                    vendor_email: data.email,
-                    vendor_phone: data.phone,
-                    vendor_address: data.address,
-                    user_id: data.userId,
-                },
-            ])
+            .insert([payload])
             .select()
             .single();
 
@@ -21,9 +21,9 @@ class VendorRepository {
         return vendor;
     }
 
-    async addCategories(vendorId, categories) {
+    async addCategories(vendor_id, categories) {
         const records = categories.map((categoryId) => ({
-            vendor_id: vendorId,
+            vendor_id: vendor_id,
             category_id: categoryId,
         }));
 
@@ -32,21 +32,6 @@ class VendorRepository {
             .insert(records);
 
         if (error) throw error;
-    }
-
-    async createVendor(data) {
-        // 1. crear vendor
-        const vendor = await vendorRepository.create(data);
-
-        // 2. insertar categorías
-        if (data.categories && data.categories.length > 0) {
-            await vendorRepository.addCategories(
-                vendor.vendor_id,
-                data.categories,
-            );
-        }
-
-        return vendor;
     }
 
     async findAll(filters = {}) {
@@ -58,9 +43,12 @@ class VendorRepository {
             )
         `);
 
-        if (filters.status) query = query.eq("vendor_status", filters.status);
-        if (filters.email) query = query.eq("vendor_email", filters.email);
-        if (filters.tax_id) query = query.eq("vendor_ruc", filters.tax_id);
+        if (filters.vendor_status)
+            query = query.eq("vendor_status", filters.vendor_status);
+        if (filters.vendor_email)
+            query = query.eq("vendor_email", filters.vendor_email);
+        if (filters.vendor_ruc)
+            query = query.eq("vendor_ruc", filters.vendor_ruc);
 
         query = query.order("created_at", { ascending: false });
 
@@ -81,36 +69,42 @@ class VendorRepository {
         return data;
     }
 
-    async findByEmail(email) {
+    async findByEmail(vendor_email) {
         const { data, error } = await supabase
             .from("vendors")
             .select("*")
-            .eq("email", email)
+            .eq("vendor_email", vendor_email)
             .maybeSingle();
 
         if (error) throw error;
         return data;
     }
 
-    async findByTaxId(tax_id) {
-        const { data, error } = await supabase
-            .from("vendors")
-            .select("*")
-            .eq("tax_id", tax_id)
-            .maybeSingle();
+    // async findByTaxId(vendor_ruc) {
+    //     const { data, error } = await supabase
+    //         .from("vendors")
+    //         .select("*")
+    //         .eq("vendor_ruc", vendor_ruc)
+    //         .maybeSingle();
 
-        if (error) throw error;
-        return data;
-    }
+    //     if (error) throw error;
+    //     return data;
+    // }
 
-    async update(id, data) {
+    async update(vendor_id, data) {
+        const payload = {
+            vendor_name: data.vendor_name,
+            vendor_email: data.vendor_email,
+            vendor_ruc: data.vendor_ruc,
+            vendor_phone: data.vendor_phone,
+            vendor_address: data.vendor_address,
+            updated_at: new Date(),
+        };
+
         const { data: vendor, error } = await supabase
             .from("vendors")
-            .update({
-                ...data,
-                updated_at: new Date(),
-            })
-            .eq("vendor_id", id)
+            .update(payload)
+            .eq("vendor_id", vendor_id)
             .select()
             .single();
 
@@ -118,11 +112,11 @@ class VendorRepository {
         return vendor;
     }
 
-    async updateStatus(id, status) {
+    async updateStatus(vendor_id, status) {
         const { data: vendor, error } = await supabase
             .from("vendors")
             .update({ vendor_status: status, updated_at: new Date() })
-            .eq("vendor_id", id)
+            .eq("vendor_id", vendor_id)
             .select()
             .single();
 
@@ -130,11 +124,11 @@ class VendorRepository {
         return vendor;
     }
 
-    async findCategoriesByVendorId(vendorId) {
+    async findCategoriesByVendorId(vendor_id) {
         const { data, error } = await supabase
             .from("vendor_categories")
             .select("category_id, categories(category_name)")
-            .eq("vendor_id", vendorId);
+            .eq("vendor_id", vendor_id);
 
         if (error) throw error;
         return data;

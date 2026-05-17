@@ -60,11 +60,11 @@ class BranchService {
   _validateCreate(data) {
     const errors = [];
 
-    if (!data.name || typeof data.name !== 'string') {
-      errors.push('name es requerido');
+    if (!data.vendor_name || typeof data.vendor_name !== 'string') {
+      errors.push('vendor_name es requerido');
     }
-    if (!data.address || typeof data.address !== 'string') {
-      errors.push('address es requerido');
+    if (!data.vendor_address || typeof data.vendor_address !== 'string') {
+      errors.push('vendor_address es requerido');
     }
 
     if (errors.length > 0) {

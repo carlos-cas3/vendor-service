@@ -17,9 +17,9 @@ class VendorController {
   async findAll(req, res, next) {
     try {
       const filters = {
-        status: req.query.status,
-        email: req.query.email,
-        tax_id: req.query.tax_id,
+        vendor_status: req.query.vendor_status,
+        vendor_email: req.query.vendor_email,
+        vendor_ruc: req.query.vendor_ruc,
       };
 
       Object.keys(filters).forEach(k => {
@@ -38,7 +38,7 @@ class VendorController {
 
   async findById(req, res, next) {
     try {
-      const vendor = await vendorService.findById(req.params.id);
+      const vendor = await vendorService.findById(req.params.vendor_id);
       res.json({
         success: true,
         data: vendor,
@@ -50,7 +50,7 @@ class VendorController {
 
   async update(req, res, next) {
     try {
-      const vendor = await vendorService.update(req.params.id, req.body);
+      const vendor = await vendorService.update(req.params.vendor_id, req.body);
       res.json({
         success: true,
         message: 'Proveedor actualizado exitosamente',
@@ -63,7 +63,7 @@ class VendorController {
 
   async updateStatus(req, res, next) {
     try {
-      const vendor = await vendorService.updateStatus(req.params.id, req.body.status);
+      const vendor = await vendorService.updateStatus(req.params.vendor_id, req.body.status);
       res.json({
         success: true,
         message: 'Estado del proveedor actualizado exitosamente',
@@ -76,7 +76,7 @@ class VendorController {
 
   async getStatus(req, res, next) {
     try {
-      const result = await vendorService.getStatus(req.params.id);
+      const result = await vendorService.getStatus(req.params.vendor_id);
       res.json({
         success: true,
         data: result,

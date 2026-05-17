@@ -25,4 +25,10 @@ class UnauthorizedError extends AppError {
   }
 }
 
-module.exports = { AppError, NotFoundError, ValidationError, UnauthorizedError };
+class ConflictError extends AppError {
+    constructor(message = 'El recurso ya existe') {
+        super(message, 409);
+    }
+}
+
+module.exports = { AppError, NotFoundError, ValidationError, UnauthorizedError, ConflictError };
