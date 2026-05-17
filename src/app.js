@@ -7,11 +7,13 @@ const {
 } = require("./routes/vendor.routes");
 
 const app = express();
+const helmet = require("helmet");
 const PORT = process.env.PORT || 3001;
 
 // Middlewares globales
 app.use(cors());
 app.use(express.json());
+app.use(helmet()); // Seguridad básica con Helmet
 
 // Rutas
 app.use("/api/vendors", vendorRouter);
