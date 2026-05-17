@@ -10,8 +10,18 @@ const app = express();
 const helmet = require("helmet");
 const PORT = process.env.PORT || 3001;
 
+const corsOptions = {
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || [
+        'http://localhost:5173',  // frontend Vite
+        'http://localhost:3006',  // auth-service
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+};
+
 // Middlewares globales
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(helmet()); // Seguridad básica con Helmet
 
