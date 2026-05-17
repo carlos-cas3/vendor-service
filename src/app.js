@@ -19,7 +19,7 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 };
-
+    
 // Middlewares globales
 app.use(cors(corsOptions));
 app.use(express.json());

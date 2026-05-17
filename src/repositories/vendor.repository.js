@@ -64,7 +64,7 @@ class VendorRepository {
             .eq("vendor_id", id)
             .single();
 
-        if (error && error.code === "PGRST116") return null;
+        if (error?.code === "PGRST116") return null;
         if (error) throw error;
         return data;
     }
