@@ -58,6 +58,8 @@ class VendorRepository {
     }
 
     async findById(id) {
+        console.log("findById llamado con:", id)
+        if (!id) throw new Error("vendor_id es requerido")
         const { data, error } = await supabase
             .from("vendors")
             .select("*")
@@ -113,6 +115,7 @@ class VendorRepository {
     }
 
     async updateStatus(vendor_id, status) {
+        console.log("updateStatus llamado con:", { vendor_id, status });
         const { data: vendor, error } = await supabase
             .from("vendors")
             .update({ vendor_status: status, updated_at: new Date() })

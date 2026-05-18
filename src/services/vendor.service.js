@@ -45,7 +45,7 @@ class VendorService {
             if (existingEmail) {
                 throw new ConflictError(
                     "El email ya está registrado por otro proveedor",
-                ); 
+                );
             }
         }
 
@@ -76,16 +76,25 @@ class VendorService {
 
         if (vendor.user_id) {
             try {
+                console.log(
+                    "secret enviado:",
+                    process.env.INTERNAL_SERVICE_SECRET,
+                ); // fuera del axios
                 await axios.patch(
-                    `${AUTH_SERVICE_URL}/api/auth/users/${vendor.user_id}/status`,
+                    `${AUTH_SERVICE_URL}/api/admin/users/${vendor.user_id}/status`,
                     { status },
-                    { timeout: 5000 },
+                    {
+                        timeout: 5000,
+                        headers: {
+                            "x-service-secret":
+                                process.env.INTERNAL_SERVICE_SECRET,
+                        },
+                    },
                 );
             } catch (error) {
                 console.error("Error notificando auth-service:", error.message);
             }
         }
-
         return updated;
     }
 
