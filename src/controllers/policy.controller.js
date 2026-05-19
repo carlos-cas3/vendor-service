@@ -1,4 +1,3 @@
-// controllers/policy.controller.js
 const policyService = require("../services/policy.service");
 
 class PolicyController {

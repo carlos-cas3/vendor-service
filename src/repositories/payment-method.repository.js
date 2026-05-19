@@ -1,78 +1,68 @@
-const supabase = require('../database/connection');
+const supabase = require("../database/connection");
 
 class PaymentMethodRepository {
-  async findAll(filters = {}) {
-    let query = supabase.from('payment_methods').select('*');
+    async findAll() {
+        const { data, error } = await supabase
+            .from("payment_methods")
+            .select("*")
+            .order("payment_method_name", { ascending: true });
 
-    if (filters.is_active !== undefined) {
-      query = query.eq('is_active', filters.is_active);
+        if (error) throw error;
+
+        return data;
     }
 
-    query = query.order('name', { ascending: true });
+    async findById(id) {
+        const { data, error } = await supabase
+            .from("payment_methods")
+            .select("*")
+            .eq("payment_method_id", id)
+            .single();
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
-  }
+        if (error && error.code === "PGRST116") return null;
+        if (error) throw error;
+        return data;
+    }
 
-  async findById(id) {
-    const { data, error } = await supabase
-      .from('payment_methods')
-      .select('*')
-      .eq('payment_method_id', id)
-      .single();
+    async findByVendorId(vendorId) {
+        const { data, error } = await supabase
+            .from("vendor_payment_methods")
+            .select("payment_methods(*)")
+            .eq("vendor_id", vendorId);
 
-    if (error && error.code === 'PGRST116') return null;
-    if (error) throw error;
-    return data;
-  }
+        if (error) throw error;
+        return data.map((item) => item.payment_methods);
+    }
 
-  async findByCode(code) {
-    const { data, error } = await supabase
-      .from('payment_methods')
-      .select('*')
-      .eq('code', code)
-      .maybeSingle();
+    async replaceVendorPaymentMethods(vendorId, paymentMethodIds) {
+        // eliminar actuales
+        const { error: deleteError } = await supabase
+            .from("vendor_payment_methods")
+            .delete()
+            .eq("vendor_id", vendorId);
 
-    if (error) throw error;
-    return data;
-  }
+        if (deleteError) throw deleteError;
 
-  async findByVendorId(vendorId) {
-    const { data, error } = await supabase
-      .from('vendor_payment_methods')
-      .select('payment_methods(*)')
-      .eq('vendor_id', vendorId)
-      .eq('is_active', true);
+        // si no hay métodos seleccionados
+        if (!paymentMethodIds.length) {
+            return [];
+        }
 
-    if (error) throw error;
-    return data.map(item => item.payment_methods);
-  }
+        // crear nuevas relaciones
+        const rows = paymentMethodIds.map((paymentMethodId) => ({
+            vendor_id: vendorId,
+            payment_method_id: paymentMethodId,
+        }));
 
-  async assignToVendor(vendorId, paymentMethodId) {
-    const { data, error } = await supabase
-      .from('vendor_payment_methods')
-      .upsert({
-        vendor_id: vendorId,
-        payment_method_id: paymentMethodId,
-      }, { onConflict: 'vendor_id,payment_method_id' })
-      .select()
-      .single();
+        const { data, error } = await supabase
+            .from("vendor_payment_methods")
+            .insert(rows)
+            .select();
 
-    if (error) throw error;
-    return data;
-  }
+        if (error) throw error;
 
-  async removeFromVendor(vendorId, paymentMethodId) {
-    const { error } = await supabase
-      .from('vendor_payment_methods')
-      .delete()
-      .eq('vendor_id', vendorId)
-      .eq('payment_method_id', paymentMethodId);
-
-    if (error) throw error;
-    return true;
-  }
+        return data;
+    }
 }
 
 module.exports = new PaymentMethodRepository();

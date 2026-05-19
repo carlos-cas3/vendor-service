@@ -6,8 +6,7 @@ class PolicyService {
     }
 
     async upsert(vendorId, description) {
-        if (!description) throw new Error("La descripción es requerida");
-        return vendorPolicyRepository.upsert(vendorId, description);
+        return vendorPolicyRepository.upsert(vendorId, description ?? "");
     }
 }
 
