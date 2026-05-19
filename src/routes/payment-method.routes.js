@@ -4,20 +4,17 @@ const paymentMethodController = require("../controllers/payment-method.controlle
 const router = express.Router();
 const json = express.json();
 
-router.get(
-    "/payment-methods",
-    paymentMethodController.findAll
-);
+router.get("/payment-methods", paymentMethodController.findAll);
 
 router.get(
     "/:vendor_id/payment-methods",
-    paymentMethodController.findByVendorId
+    paymentMethodController.findByVendorId,
 );
 
 router.put(
     "/:vendor_id/payment-methods",
     json,
-    paymentMethodController.replaceVendorPaymentMethods
+    paymentMethodController.replaceVendorPaymentMethods,
 );
 
 module.exports = router;

@@ -4,10 +4,6 @@ const upload = require("../middleware/upload.middleware");
 
 const router = express.Router();
 
-router.post(
-    "/:vendor_id/logo",
-    upload.single("logo"),
-    logoController.upload
-);
+router.post("/:vendor_id/logo", upload.single("logo"), logoController.upload);
 
 module.exports = router;

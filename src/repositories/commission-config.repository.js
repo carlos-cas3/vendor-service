@@ -1,3 +1,6 @@
+// FALTA IMPLEMENTAR CORRECTAMENTE SUS RUTAS
+
+
 const supabase = require('../database/connection');
 
 class CommissionConfigRepository {

@@ -1,83 +1,127 @@
-const branchService = require('../services/branch.service');
+const branchService = require("../services/branch.service");
 
 class BranchController {
-  async create(req, res, next) {
-    try {
-      const branch = await branchService.create(req.params.vendorId, req.body);
-      res.status(201).json({
-        success: true,
-        message: 'Sucursal creada exitosamente',
-        data: branch,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    async create(req, res, next) {
+        try {
+            const vendorId = parseInt(req.params.vendor_id);
 
-  async findByVendorId(req, res, next) {
-    try {
-      const filters = {};
-      if (req.query.status) filters.status = req.query.status;
+            if (isNaN(vendorId)) {
+                throw new Error("vendor_id inválido");
+            }
 
-      const branches = await branchService.findByVendorId(req.params.vendorId, filters);
-      res.json({
-        success: true,
-        data: branches,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+            const branch = await branchService.create(vendorId, req.body);
 
-  async findById(req, res, next) {
-    try {
-      const branch = await branchService.findById(req.params.id);
-      res.json({
-        success: true,
-        data: branch,
-      });
-    } catch (error) {
-      next(error);
+            res.status(201).json({
+                success: true,
+                message: "Sucursal creada exitosamente",
+                data: branch,
+            });
+        } catch (error) {
+            next(error);
+        }
     }
-  }
 
-  async update(req, res, next) {
-    try {
-      const branch = await branchService.update(req.params.id, req.body);
-      res.json({
-        success: true,
-        message: 'Sucursal actualizada exitosamente',
-        data: branch,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    async findByVendorId(req, res, next) {
+        try {
+            const vendorId = parseInt(req.params.vendor_id);
 
-  async updateStatus(req, res, next) {
-    try {
-      const branch = await branchService.updateStatus(req.params.id, req.body.status);
-      res.json({
-        success: true,
-        message: 'Estado de la sucursal actualizado exitosamente',
-        data: branch,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+            if (isNaN(vendorId)) {
+                throw new Error("vendor_id inválido");
+            }
 
-  async delete(req, res, next) {
-    try {
-      await branchService.delete(req.params.id);
-      res.json({
-        success: true,
-        message: 'Sucursal eliminada exitosamente',
-      });
-    } catch (error) {
-      next(error);
+            const branches = await branchService.findByVendorId(vendorId);
+
+            res.json({
+                success: true,
+                data: branches,
+            });
+        } catch (error) {
+            next(error);
+        }
     }
-  }
+
+    async findById(req, res, next) {
+        try {
+            const branchId = parseInt(req.params.branch_id);
+
+            if (isNaN(branchId)) {
+                throw new Error("branch_id inválido");
+            }
+
+            const branch = await branchService.findById(branchId);
+
+            res.json({
+                success: true,
+                data: branch,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async update(req, res, next) {
+        try {
+            const branchId = parseInt(req.params.branch_id);
+
+            if (isNaN(branchId)) {
+                throw new Error("branch_id inválido");
+            }
+
+            const branch = await branchService.update(branchId, req.body);
+
+            res.json({
+                success: true,
+                message: "Sucursal actualizada exitosamente",
+                data: branch,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async updateStatus(req, res, next) {
+        try {
+            const branchId = parseInt(req.params.branch_id);
+
+            if (isNaN(branchId)) {
+                throw new Error("branch_id inválido");
+            }
+
+            const { branch_status } = req.body;
+
+            const branch = await branchService.updateStatus(
+                branchId,
+                branch_status,
+            );
+
+            res.json({
+                success: true,
+                message: "Estado de la sucursal actualizado exitosamente",
+                data: branch,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async deactivate(req, res, next) {
+        try {
+            const branchId = parseInt(req.params.branch_id);
+
+            if (isNaN(branchId)) {
+                throw new Error("branch_id inválido");
+            }
+
+            await branchService.deactivate(branchId);
+
+            res.json({
+                success: true,
+                message: "Sucursal desactivada exitosamente",
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = new BranchController();

@@ -1,93 +1,133 @@
-const supabase = require('../database/connection');
+const supabase = require("../database/connection");
 
 class BranchRepository {
-  async create(data) {
-    const { data: branch, error } = await supabase
-      .from('branches')
-      .insert([{
-        vendor_id: data.vendor_id,
-        name: data.name,
-        address: data.address,
-        city_id: data.city_id,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        phone: data.phone,
-        email: data.email,
-        schedule: data.schedule,
-        is_main: data.is_main || false,
-      }])
-      .select()
-      .single();
+    async create(data) {
+        const { data: branch, error } = await supabase
+            .from("branches")
+            .insert([
+                {
+                    vendor_id: data.vendor_id,
 
-    if (error) throw error;
-    return branch;
-  }
+                    city_id: data.city_id,
 
-  async findByVendorId(vendorId, filters = {}) {
-    let query = supabase
-      .from('branches')
-      .select('*')
-      .eq('vendor_id', vendorId);
+                    branch_name: data.branch_name || null,
 
-    if (filters.status) {
-      query = query.eq('status', filters.status);
+                    branch_address: data.branch_address,
+
+                    branch_status: data.branch_status || "ACTIVE",
+                },
+            ])
+            .select(
+                `
+                *,
+                cities (
+                    city_id,
+                    city_name
+                )
+            `,
+            )
+            .single();
+
+        if (error) throw error;
+
+        return branch;
     }
 
-    query = query.order('is_main', { ascending: false });
+    async findByVendorId(vendorId) {
+        const { data, error } = await supabase
+            .from("branches")
+            .select(
+                `
+                *,
+                cities (
+                    city_id,
+                    city_name
+                )
+            `,
+            )
+            .eq("vendor_id", vendorId)
+            .order("created_at", {
+                ascending: true,
+            });
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
-  }
+        if (error) throw error;
 
-  async findById(id) {
-    const { data, error } = await supabase
-      .from('branches')
-      .select('*')
-      .eq('branch_id', id)
-      .single();
+        return data;
+    }
 
-    if (error && error.code === 'PGRST116') return null;
-    if (error) throw error;
-    return data;
-  }
+    async findById(branchId) {
+        const { data: branch, error } = await supabase
+            .from("branches")
+            .select(
+                `
+            *,
+            cities (
+                city_id,
+                city_name
+            )
+        `,
+            )
+            .eq("branch_id", branchId)
+            .single();
 
-  async update(id, data) {
-    const { data: branch, error } = await supabase
-      .from('branches')
-      .update({
-        ...data,
-        updated_at: new Date(),
-      })
-      .eq('branch_id', id)
-      .select()
-      .single();
+        if (error && error.code === "PGRST116") {
+            return null;
+        }
 
-    if (error) throw error;
-    return branch;
-  }
+        if (error) throw error;
 
-  async updateStatus(id, status) {
-    const { data: branch, error } = await supabase
-      .from('branches')
-      .update({ status, updated_at: new Date() })
-      .eq('branch_id', id)
-      .select()
-      .single();
+        return branch;
+    }
 
-    if (error) throw error;
-    return branch;
-  }
+    async update(branchId, data) {
+        const { data: branch, error } = await supabase
+            .from("branches")
+            .update({
+                city_id: data.city_id,
 
-  async delete(id) {
-    const { error } = await supabase
-      .from('branches')
-      .delete()
-      .eq('branch_id', id);
+                branch_name: data.branch_name,
 
-    if (error) throw error;
-    return true;
-  }
+                branch_address: data.branch_address,
+
+                updated_at: new Date().toISOString(),
+            })
+            .eq("branch_id", branchId)
+            .select(
+                `
+                    *,
+                    cities (
+                        city_id,
+                        city_name
+                    )
+                `,
+            )
+            .single();
+
+        if (error) throw error;
+
+        return branch;
+    }
+
+    async updateStatus(branchId, branchStatus) {
+        const { data: branch, error } = await supabase
+            .from("branches")
+            .update({
+                branch_status: branchStatus,
+
+                updated_at: new Date(),
+            })
+            .eq("branch_id", branchId)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        return branch;
+    }
+
+    async deactivate(branchId) {
+        return this.updateStatus(branchId, "INACTIVE");
+    }
 }
 
 module.exports = new BranchRepository();
