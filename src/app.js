@@ -29,6 +29,8 @@ app.use(helmet()); // Seguridad básica con Helmet
 app.use("/api/vendors", vendorRouter);
 app.use("/api", directBranchRouter);
 
+
+
 // Health check
 app.get("/health", (req, res) => {
     res.json({

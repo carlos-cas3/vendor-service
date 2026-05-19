@@ -58,8 +58,8 @@ class VendorRepository {
     }
 
     async findById(id) {
-        console.log("findById llamado con:", id)
-        if (!id) throw new Error("vendor_id es requerido")
+        console.log("findById llamado con:", id);
+        if (!id) throw new Error("vendor_id es requerido");
         const { data, error } = await supabase
             .from("vendors")
             .select("*")
@@ -132,6 +132,19 @@ class VendorRepository {
             .from("vendor_categories")
             .select("category_id, categories(category_name)")
             .eq("vendor_id", vendor_id);
+
+        if (error) throw error;
+        return data;
+    }
+
+    async updateLogo(vendor_id, logoUrl) {
+        console.log("updateLogo llamado con:", { vendor_id, logoUrl }); // añadir
+        const { data, error } = await supabase
+            .from("vendors")
+            .update({ vendor_logo_url: logoUrl, updated_at: new Date() })
+            .eq("vendor_id", vendor_id)
+            .select()
+            .single();
 
         if (error) throw error;
         return data;
