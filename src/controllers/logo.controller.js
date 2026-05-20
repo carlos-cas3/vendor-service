@@ -1,4 +1,3 @@
-// controllers/logo.controller.js
 const logoService = require("../services/logo.service");
 
 class LogoController {

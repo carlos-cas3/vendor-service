@@ -1,8 +1,11 @@
 const express = require("express");
 
 const branchController = require("../controllers/branch.controller");
+const cityController = require("../controllers/city.controller");
 
 const router = express.Router();
+
+router.get("/cities", cityController.findAll);
 
 router.post("/:vendor_id/branches", express.json(), branchController.create);
 
@@ -19,5 +22,6 @@ router.patch(
 );
 
 router.delete("/branches/:branch_id", branchController.deactivate);
+
 
 module.exports = router;

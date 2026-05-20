@@ -6,6 +6,8 @@ const policyRoutes = require("./policy.routes");
 const paymentMethodRoutes = require("./payment-method.routes");
 const logoRoutes = require("./logo.routes");
 const categoryRoutes = require("./category.routes");
+const commissionRoutes = require("./commission.routes");
+
 
 const router = express.Router();
 
@@ -20,5 +22,7 @@ router.use("/", logoRoutes);
 router.use("/", categoryRoutes);
 
 router.use("/", vendorRoutes);
+
+router.use("/", commissionRoutes);
 
 module.exports = router;
