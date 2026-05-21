@@ -7,15 +7,25 @@ class CommissionService {
         const vendor = await vendorRepository.findById(vendorId);
         if (!vendor) throw new NotFoundError("Proveedor no encontrado");
 
-        return commissionRepository.findByVendorId(vendorId);
+        const configs = await commissionRepository.findByVendorId(vendorId);
+        return configs[0] ?? null; // solo devuelve el primero o null
     }
 
     async create(vendorId, data) {
         const vendor = await vendorRepository.findById(vendorId);
         if (!vendor) throw new NotFoundError("Proveedor no encontrado");
 
-        this._validate(data.commission_rate);
+        // Verificar si ya existe — si existe, actualizar en lugar de crear
+        const existing = await commissionRepository.findByVendorId(vendorId);
+        if (existing.length > 0) {
+            this._validate(data.commission_rate);
+            return commissionRepository.update(
+                existing[0].config_id,
+                data.commission_rate,
+            );
+        }
 
+        this._validate(data.commission_rate);
         return commissionRepository.create({
             vendor_id: vendorId,
             commission_rate: data.commission_rate,
