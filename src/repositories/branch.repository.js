@@ -83,23 +83,18 @@ class BranchRepository {
         const { data: branch, error } = await supabase
             .from("branches")
             .update({
-                city_id: data.city_id,
-
-                branch_name: data.branch_name,
-
-                branch_address: data.branch_address,
-
+                ...data,
                 updated_at: new Date().toISOString(),
             })
             .eq("branch_id", branchId)
             .select(
                 `
-                    *,
-                    cities (
-                        city_id,
-                        city_name
-                    )
-                `,
+            *,
+            cities (
+                city_id,
+                city_name
+            )
+        `,
             )
             .single();
 

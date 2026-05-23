@@ -48,19 +48,25 @@ class BranchService {
 
         return branch;
     }
-
     async update(branchId, data) {
         await this.findById(branchId);
-
         await this._validateUpdate(data);
 
-        return branchRepository.update(branchId, {
-            city_id: data.city_id,
+        const payload = {};
 
-            branch_name: data.branch_name || null,
+        if (data.city_id !== undefined) {
+            payload.city_id = data.city_id;
+        }
 
-            branch_address: data.branch_address,
-        });
+        if (data.branch_name !== undefined) {
+            payload.branch_name = data.branch_name;
+        }
+
+        if (data.branch_address !== undefined) {
+            payload.branch_address = data.branch_address;
+        }
+
+        return branchRepository.update(branchId, payload);
     }
 
     async updateStatus(branchId, branchStatus) {
