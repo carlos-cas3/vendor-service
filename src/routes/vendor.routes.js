@@ -10,7 +10,7 @@ router.get("/", vendorController.findAll);
 
 router.get("/:vendor_id", vendorController.findById);
 
-router.put("/:vendor_id", json, vendorController.update);
+router.patch("/:vendor_id", json, vendorController.update);
 
 router.patch("/:vendor_id/status", json, vendorController.updateStatus);
 

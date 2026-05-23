@@ -95,13 +95,20 @@ class VendorRepository {
 
     async update(vendor_id, data) {
         const payload = {
-            vendor_name: data.vendor_name,
-            vendor_email: data.vendor_email,
-            vendor_ruc: data.vendor_ruc,
-            vendor_phone: data.vendor_phone,
-            vendor_address: data.vendor_address,
             updated_at: new Date(),
         };
+
+        if (data.vendor_name !== undefined)
+            payload.vendor_name = data.vendor_name;
+
+        if (data.vendor_email !== undefined)
+            payload.vendor_email = data.vendor_email;
+
+        if (data.vendor_phone !== undefined)
+            payload.vendor_phone = data.vendor_phone;
+
+        if (data.vendor_address !== undefined)
+            payload.vendor_address = data.vendor_address;
 
         const { data: vendor, error } = await supabase
             .from("vendors")
@@ -111,6 +118,7 @@ class VendorRepository {
             .single();
 
         if (error) throw error;
+
         return vendor;
     }
 

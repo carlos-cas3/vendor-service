@@ -13,7 +13,7 @@ router.get("/:vendor_id/branches", branchController.findByVendorId);
 
 router.get("/branches/:branch_id", branchController.findById);
 
-router.put("/branches/:branch_id", express.json(), branchController.update);
+router.patch("/branches/:branch_id", express.json(), branchController.update);
 
 router.patch(
     "/branches/:branch_id/status",
@@ -22,6 +22,5 @@ router.patch(
 );
 
 router.delete("/branches/:branch_id", branchController.deactivate);
-
 
 module.exports = router;
