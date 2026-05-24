@@ -23,7 +23,6 @@ const corsOptions = {
 // Middlewares globales
 app.use(helmet());
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 app.use(express.json());
 
 // API ROUTES
