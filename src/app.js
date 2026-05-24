@@ -15,7 +15,7 @@ const corsOptions = {
         "http://localhost:5173",
         "http://localhost:3006",
     ],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
 };
@@ -23,6 +23,14 @@ const corsOptions = {
 // Middlewares globales
 app.use(helmet());
 app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(204);
+    }
+    next();
+});
+
 app.use(express.json());
 
 // API ROUTES
