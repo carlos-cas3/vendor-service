@@ -1,6 +1,19 @@
 const logoService = require("../services/logo.service");
 
 class LogoController {
+    /**
+     * Sube un logotipo para un proveedor.
+     * Acepta archivos PNG o JPG de hasta 2MB vía multipart/form-data.
+     *
+     * @param {import('express').Request} req - Request con vendor_id en params y archivo "logo" en file
+     * @param {import('express').Response} res - Response
+     * @param {import('express').NextFunction} next - Next function
+     * @returns {Promise<void>}
+     *
+     * @example
+     * POST /api/vendors/1/logo
+     * (multipart/form-data con campo "logo")
+     */
     async upload(req, res, next) {
         try {
             const vendor_id = parseInt(req.params.vendor_id);

@@ -1,6 +1,12 @@
 const supabase = require("../database/connection");
 
 class VendorRepository {
+    /**
+     * Inserta un nuevo proveedor en la base de datos.
+     *
+     * @param {Object} data - Datos del proveedor
+     * @returns {Promise<Object>} Proveedor creado
+     */
     async create(data) {
         const payload = {
             vendor_name: data.vendor_name,
@@ -21,6 +27,12 @@ class VendorRepository {
         return vendor;
     }
 
+    /**
+     * Asigna categorías a un proveedor en la tabla intermedia.
+     *
+     * @param {number} vendor_id - ID del proveedor
+     * @param {number[]} categories - IDs de categorías
+     */
     async addCategories(vendor_id, categories) {
         const records = categories.map((categoryId) => ({
             vendor_id: vendor_id,
@@ -34,6 +46,12 @@ class VendorRepository {
         if (error) throw error;
     }
 
+    /**
+     * Lista proveedores con filtros opcionales, incluyendo categorías.
+     *
+     * @param {Object} [filters] - Filtros de búsqueda
+     * @returns {Promise<Array>} Lista de proveedores
+     */
     async findAll(filters = {}) {
         let query = supabase.from("vendors").select(`
             *,
@@ -57,6 +75,12 @@ class VendorRepository {
         return data;
     }
 
+    /**
+     * Busca un proveedor por su ID.
+     *
+     * @param {number} id - ID del proveedor
+     * @returns {Promise<Object|null>} Proveedor o null si no existe
+     */
     async findById(id) {
         console.log("findById llamado con:", id);
         if (!id) throw new Error("vendor_id es requerido");
@@ -71,6 +95,12 @@ class VendorRepository {
         return data;
     }
 
+    /**
+     * Busca un proveedor por su email.
+     *
+     * @param {string} vendor_email - Email del proveedor
+     * @returns {Promise<Object|null>} Proveedor o null si no existe
+     */
     async findByEmail(vendor_email) {
         const { data, error } = await supabase
             .from("vendors")
@@ -93,6 +123,13 @@ class VendorRepository {
     //     return data;
     // }
 
+    /**
+     * Actualiza parcialmente un proveedor.
+     *
+     * @param {number} vendor_id - ID del proveedor
+     * @param {Object} data - Campos a actualizar
+     * @returns {Promise<Object>} Proveedor actualizado
+     */
     async update(vendor_id, data) {
         const payload = {
             updated_at: new Date(),
@@ -122,6 +159,13 @@ class VendorRepository {
         return vendor;
     }
 
+    /**
+     * Actualiza el estado de un proveedor.
+     *
+     * @param {number} vendor_id - ID del proveedor
+     * @param {string} status - Nuevo estado
+     * @returns {Promise<Object>} Proveedor actualizado
+     */
     async updateStatus(vendor_id, status) {
         console.log("updateStatus llamado con:", { vendor_id, status });
         const { data: vendor, error } = await supabase
@@ -135,6 +179,12 @@ class VendorRepository {
         return vendor;
     }
 
+    /**
+     * Obtiene las categorías de un proveedor desde la tabla intermedia.
+     *
+     * @param {number} vendor_id - ID del proveedor
+     * @returns {Promise<Array>} Lista de categorías
+     */
     async findCategoriesByVendorId(vendor_id) {
         const { data, error } = await supabase
             .from("vendor_categories")
@@ -145,8 +195,15 @@ class VendorRepository {
         return data;
     }
 
+    /**
+     * Actualiza la URL del logotipo de un proveedor.
+     *
+     * @param {number} vendor_id - ID del proveedor
+     * @param {string} logoUrl - URL del logotipo
+     * @returns {Promise<Object>} Proveedor actualizado
+     */
     async updateLogo(vendor_id, logoUrl) {
-        console.log("updateLogo llamado con:", { vendor_id, logoUrl }); // añadir
+        console.log("updateLogo llamado con:", { vendor_id, logoUrl });
         const { data, error } = await supabase
             .from("vendors")
             .update({ vendor_logo_url: logoUrl, updated_at: new Date() })

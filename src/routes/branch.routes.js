@@ -9,6 +9,8 @@ router.get("/cities", cityController.findAll);
 
 router.post("/:vendor_id/branches", express.json(), branchController.create);
 
+router.get("/:vendor_id/branches/active", branchController.findActiveByVendorId);
+
 router.get("/:vendor_id/branches", branchController.findByVendorId);
 
 router.get("/branches/:branch_id", branchController.findById);

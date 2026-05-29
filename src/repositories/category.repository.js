@@ -1,6 +1,11 @@
 const supabase = require("../database/connection");
 
 class CategoryRepository {
+    /**
+     * Lista todas las categorías disponibles.
+     *
+     * @returns {Promise<Array>} Lista de categorías
+     */
     async findAll() {
         const { data, error } = await supabase
             .from("categories")
@@ -12,6 +17,12 @@ class CategoryRepository {
         return data;
     }
 
+    /**
+     * Busca una categoría por su ID.
+     *
+     * @param {number} categoryId - ID de la categoría
+     * @returns {Promise<Object|null>} Categoría o null
+     */
     async findById(categoryId) {
         const { data, error } = await supabase
             .from("categories")
@@ -27,6 +38,13 @@ class CategoryRepository {
 
         return data;
     }
+
+    /**
+     * Obtiene las categorías asignadas a un proveedor.
+     *
+     * @param {number} vendorId - ID del proveedor
+     * @returns {Promise<Array>} Categorías del proveedor
+     */
     async findByVendorId(vendorId) {
         const { data, error } = await supabase
             .from("vendor_categories")
@@ -45,6 +63,13 @@ class CategoryRepository {
         return data;
     }
 
+    /**
+     * Asigna una categoría a un proveedor (upsert).
+     *
+     * @param {number} vendorId - ID del proveedor
+     * @param {number} categoryId - ID de la categoría
+     * @returns {Promise<Object>} Registro creado
+     */
     async assignToVendor(vendorId, categoryId) {
         const { data, error } = await supabase
             .from("vendor_categories")
@@ -65,6 +90,13 @@ class CategoryRepository {
         return data;
     }
 
+    /**
+     * Elimina una categoría de un proveedor.
+     *
+     * @param {number} vendorId - ID del proveedor
+     * @param {number} categoryId - ID de la categoría
+     * @returns {Promise<boolean>} true si se eliminó
+     */
     async removeFromVendor(vendorId, categoryId) {
         const { error } = await supabase
             .from("vendor_categories")
@@ -77,6 +109,14 @@ class CategoryRepository {
         return true;
     }
 
+    /**
+     * Reemplaza todas las categorías de un proveedor.
+     * Elimina las existentes e inserta las nuevas.
+     *
+     * @param {number} vendorId - ID del proveedor
+     * @param {number[]} categoryIds - IDs de categorías
+     * @returns {Promise<Array>} Registros creados
+     */
     async replaceVendorCategories(vendorId, categoryIds) {
         await supabase
             .from("vendor_categories")

@@ -1,6 +1,21 @@
 const branchService = require("../services/branch.service");
 
 class BranchController {
+    /**
+     * Crea una nueva sucursal para un proveedor.
+     *
+     * @param {import('express').Request} req - Request con vendor_id en params y datos en body
+     * @param {import('express').Response} res - Response
+     * @param {import('express').NextFunction} next - Next function
+     * @returns {Promise<void>}
+     *
+     * @throws {NotFoundError} Si el proveedor no existe
+     * @throws {ValidationError} Si los datos son inválidos
+     *
+     * @example
+     * POST /api/vendors/1/branches
+     * { "city_id": 1, "branch_address": "Calle 123", "branch_name": "Sucursal Centro" }
+     */
     async create(req, res, next) {
         try {
             const vendorId = parseInt(req.params.vendor_id);
@@ -21,6 +36,51 @@ class BranchController {
         }
     }
 
+    /**
+     * Lista sucursales activas de un proveedor.
+     *
+     * @param {import('express').Request} req - Request con vendor_id en params
+     * @param {import('express').Response} res - Response
+     * @param {import('express').NextFunction} next - Next function
+     * @returns {Promise<void>}
+     *
+     * @throws {NotFoundError} Si el proveedor no existe
+     *
+     * @example
+     * GET /api/vendors/1/branches/active
+     */
+    async findActiveByVendorId(req, res, next) {
+        try {
+            const vendorId = parseInt(req.params.vendor_id);
+
+            if (isNaN(vendorId)) {
+                throw new Error("vendor_id inválido");
+            }
+
+            const branches = await branchService.findActiveByVendorId(vendorId);
+
+            res.json({
+                success: true,
+                data: branches,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Lista sucursales de un proveedor.
+     *
+     * @param {import('express').Request} req - Request con vendor_id en params
+     * @param {import('express').Response} res - Response
+     * @param {import('express').NextFunction} next - Next function
+     * @returns {Promise<void>}
+     *
+     * @throws {NotFoundError} Si el proveedor no existe
+     *
+     * @example
+     * GET /api/vendors/1/branches
+     */
     async findByVendorId(req, res, next) {
         try {
             const vendorId = parseInt(req.params.vendor_id);
@@ -40,6 +100,19 @@ class BranchController {
         }
     }
 
+    /**
+     * Obtiene una sucursal por su ID.
+     *
+     * @param {import('express').Request} req - Request con branch_id en params
+     * @param {import('express').Response} res - Response
+     * @param {import('express').NextFunction} next - Next function
+     * @returns {Promise<void>}
+     *
+     * @throws {NotFoundError} Si la sucursal no existe
+     *
+     * @example
+     * GET /api/vendors/branches/1
+     */
     async findById(req, res, next) {
         try {
             const branchId = parseInt(req.params.branch_id);
@@ -59,6 +132,21 @@ class BranchController {
         }
     }
 
+    /**
+     * Actualiza los datos de una sucursal.
+     *
+     * @param {import('express').Request} req - Request con branch_id en params y datos en body
+     * @param {import('express').Response} res - Response
+     * @param {import('express').NextFunction} next - Next function
+     * @returns {Promise<void>}
+     *
+     * @throws {NotFoundError} Si la sucursal no existe
+     * @throws {ValidationError} Si los datos son inválidos
+     *
+     * @example
+     * PATCH /api/vendors/branches/1
+     * { "branch_name": "Sucursal Norte", "branch_address": "Av. Siempre Viva 742" }
+     */
     async update(req, res, next) {
         try {
             const branchId = parseInt(req.params.branch_id);
@@ -79,6 +167,21 @@ class BranchController {
         }
     }
 
+    /**
+     * Actualiza el estado de una sucursal.
+     *
+     * @param {import('express').Request} req - Request con branch_id en params y branch_status en body
+     * @param {import('express').Response} res - Response
+     * @param {import('express').NextFunction} next - Next function
+     * @returns {Promise<void>}
+     *
+     * @throws {NotFoundError} Si la sucursal no existe
+     * @throws {ValidationError} Si el estado no es válido
+     *
+     * @example
+     * PATCH /api/vendors/branches/1/status
+     * { "branch_status": "MAINTENANCE" }
+     */
     async updateStatus(req, res, next) {
         try {
             const branchId = parseInt(req.params.branch_id);
@@ -104,6 +207,19 @@ class BranchController {
         }
     }
 
+    /**
+     * Desactiva una sucursal (borrado lógico, establece estado INACTIVE).
+     *
+     * @param {import('express').Request} req - Request con branch_id en params
+     * @param {import('express').Response} res - Response
+     * @param {import('express').NextFunction} next - Next function
+     * @returns {Promise<void>}
+     *
+     * @throws {NotFoundError} Si la sucursal no existe
+     *
+     * @example
+     * DELETE /api/vendors/branches/1
+     */
     async deactivate(req, res, next) {
         try {
             const branchId = parseInt(req.params.branch_id);
