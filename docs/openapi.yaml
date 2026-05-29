@@ -1,0 +1,1253 @@
+openapi: "3.0.3"
+info:
+  title: Vendor Service API
+  description: |
+    Microservicio de gestión de proveedores.
+    Proporciona CRUD de proveedores, sucursales, comisiones, categorías,
+    políticas, métodos de pago y carga de logotipos.
+  version: "1.0.0"
+  contact:
+    name: Vendor Service Team
+
+servers:
+  - url: http://localhost:3001
+    description: Desarrollo local
+  - url: https://api.example.com
+    description: Producción
+
+paths:
+  # ──────────────────────────────────────────────
+  # HEALTH
+  # ──────────────────────────────────────────────
+  /health:
+    get:
+      tags: [Health]
+      summary: Verificar estado del servicio
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Servicio operativo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: vendor-service
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-05-28T12:00:00.000Z"
+
+  # ──────────────────────────────────────────────
+  # VENDORS
+  # ──────────────────────────────────────────────
+  /api/vendors:
+    post:
+      tags: [Vendors]
+      summary: Crear un nuevo proveedor
+      operationId: createVendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVendorRequest"
+            example:
+              vendor_name: "Distribuidora ABC"
+              vendor_email: "contacto@abc.com"
+              vendor_ruc: "12345678901"
+              user_id: 42
+              vendor_phone: "+525512345678"
+              vendor_address: "Av. Reforma 123, CDMX"
+              categories: [1, 3]
+      responses:
+        "201":
+          description: Proveedor creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+    get:
+      tags: [Vendors]
+      summary: Listar proveedores
+      operationId: listVendors
+      parameters:
+        - name: vendor_status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, ACTIVE, INACTIVE, SUSPENDED]
+          description: Filtrar por estado
+        - name: vendor_email
+          in: query
+          schema:
+            type: string
+            format: email
+          description: Filtrar por email
+        - name: vendor_ruc
+          in: query
+          schema:
+            type: string
+          description: Filtrar por RUC
+      responses:
+        "200":
+          description: Lista de proveedores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Vendor"
+
+  /api/vendors/{vendor_id}:
+    get:
+      tags: [Vendors]
+      summary: Obtener proveedor por ID
+      operationId: getVendorById
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del proveedor
+      responses:
+        "200":
+          description: Datos del proveedor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorResponse"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    patch:
+      tags: [Vendors]
+      summary: Actualizar proveedor
+      operationId: updateVendor
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVendorRequest"
+            example:
+              vendor_name: "Distribuidora ABC Actualizada"
+              vendor_email: "nuevo@abc.com"
+              vendor_phone: "+525598765432"
+              vendor_address: "Av. Insurgentes 456, CDMX"
+      responses:
+        "200":
+          description: Proveedor actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Proveedor actualizado exitosamente"
+                  data:
+                    $ref: "#/components/schemas/Vendor"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+  /api/vendors/{vendor_id}/status:
+    patch:
+      tags: [Vendors]
+      summary: Actualizar estado del proveedor
+      operationId: updateVendorStatus
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [PENDING, ACTIVE, INACTIVE, SUSPENDED]
+                  description: Nuevo estado del proveedor
+            example:
+              status: "ACTIVE"
+      responses:
+        "200":
+          description: Estado actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Estado del proveedor actualizado exitosamente"
+                  data:
+                    $ref: "#/components/schemas/Vendor"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    get:
+      tags: [Vendors]
+      summary: Obtener estado del proveedor
+      operationId: getVendorStatus
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Estado del proveedor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      vendor_id:
+                        type: integer
+                        example: 1
+                      status:
+                        type: string
+                        example: "ACTIVE"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  # ──────────────────────────────────────────────
+  # CITIES
+  # ──────────────────────────────────────────────
+  /api/vendors/cities:
+    get:
+      tags: [Cities]
+      summary: Listar ciudades disponibles
+      operationId: listCities
+      responses:
+        "200":
+          description: Lista de ciudades
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/City"
+
+  # ──────────────────────────────────────────────
+  # BRANCHES
+  # ──────────────────────────────────────────────
+  /api/vendors/{vendor_id}/branches:
+    post:
+      tags: [Branches]
+      summary: Crear sucursal para un proveedor
+      operationId: createBranch
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBranchRequest"
+            example:
+              city_id: 1
+              branch_address: "Calle Principal 456, Col. Centro"
+              branch_name: "Sucursal Centro"
+      responses:
+        "201":
+          description: Sucursal creada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Sucursal creada exitosamente"
+                  data:
+                    $ref: "#/components/schemas/Branch"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    get:
+      tags: [Branches]
+      summary: Listar sucursales de un proveedor
+      operationId: listBranchesByVendor
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lista de sucursales del proveedor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Branch"
+
+  /api/vendors/branches/{branch_id}:
+    get:
+      tags: [Branches]
+      summary: Obtener sucursal por ID
+      operationId: getBranchById
+      parameters:
+        - name: branch_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Datos de la sucursal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Branch"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    patch:
+      tags: [Branches]
+      summary: Actualizar sucursal
+      operationId: updateBranch
+      parameters:
+        - name: branch_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                city_id:
+                  type: integer
+                  description: ID de la ciudad
+                branch_name:
+                  type: string
+                  description: Nombre de la sucursal
+                branch_address:
+                  type: string
+                  description: Dirección de la sucursal
+            example:
+              branch_name: "Sucursal Centro (Actualizada)"
+              branch_address: "Av. Reforma 789, CDMX"
+      responses:
+        "200":
+          description: Sucursal actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Sucursal actualizada exitosamente"
+                  data:
+                    $ref: "#/components/schemas/Branch"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    delete:
+      tags: [Branches]
+      summary: Desactivar sucursal (borrado lógico)
+      operationId: deactivateBranch
+      parameters:
+        - name: branch_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Sucursal desactivada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Sucursal desactivada exitosamente"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /api/vendors/branches/{branch_id}/status:
+    patch:
+      tags: [Branches]
+      summary: Actualizar estado de la sucursal
+      operationId: updateBranchStatus
+      parameters:
+        - name: branch_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [branch_status]
+              properties:
+                branch_status:
+                  type: string
+                  enum: [ACTIVE, INACTIVE, MAINTENANCE]
+                  description: Nuevo estado de la sucursal
+            example:
+              branch_status: "MAINTENANCE"
+      responses:
+        "200":
+          description: Estado de sucursal actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Estado de la sucursal actualizado exitosamente"
+                  data:
+                    $ref: "#/components/schemas/Branch"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  # ──────────────────────────────────────────────
+  # COMMISSIONS
+  # ──────────────────────────────────────────────
+  /api/vendors/{vendor_id}/commission:
+    get:
+      tags: [Commissions]
+      summary: Obtener configuración de comisión del proveedor
+      operationId: getCommissionByVendor
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Configuración de comisión (o null)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    oneOf:
+                      - $ref: "#/components/schemas/CommissionConfig"
+                      - type: "null"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    post:
+      tags: [Commissions]
+      summary: Crear configuración de comisión
+      operationId: createCommission
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [commission_rate]
+              properties:
+                commission_rate:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                  description: Tasa de comisión (0 a 1)
+            example:
+              commission_rate: 0.15
+      responses:
+        "201":
+          description: Configuración creada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/CommissionConfig"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /api/vendors/commission/{config_id}:
+    put:
+      tags: [Commissions]
+      summary: Actualizar configuración de comisión
+      operationId: updateCommission
+      parameters:
+        - name: config_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [commission_rate]
+              properties:
+                commission_rate:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+            example:
+              commission_rate: 0.20
+      responses:
+        "200":
+          description: Configuración actualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/CommissionConfig"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    delete:
+      tags: [Commissions]
+      summary: Eliminar configuración de comisión
+      operationId: deleteCommission
+      parameters:
+        - name: config_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Configuración eliminada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Configuración eliminada"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  # ──────────────────────────────────────────────
+  # CATEGORIES
+  # ──────────────────────────────────────────────
+  /api/vendors/categories:
+    get:
+      tags: [Categories]
+      summary: Listar todas las categorías
+      operationId: listCategories
+      responses:
+        "200":
+          description: Lista de categorías
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+
+  /api/vendors/{vendor_id}/categories:
+    get:
+      tags: [Categories]
+      summary: Obtener categorías de un proveedor
+      operationId: getVendorCategories
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Categorías asignadas al proveedor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        categories:
+                          $ref: "#/components/schemas/Category"
+
+    put:
+      tags: [Categories]
+      summary: Reemplazar categorías de un proveedor
+      operationId: replaceVendorCategories
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category_ids]
+              properties:
+                category_ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: IDs de categorías a asignar
+            example:
+              category_ids: [1, 2, 5]
+      responses:
+        "200":
+          description: Categorías actualizadas correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Categorías actualizadas correctamente"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  # ──────────────────────────────────────────────
+  # POLICIES
+  # ──────────────────────────────────────────────
+  /api/vendors/{vendor_id}/policy:
+    get:
+      tags: [Policies]
+      summary: Obtener política del proveedor
+      operationId: getVendorPolicy
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Política del proveedor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    oneOf:
+                      - $ref: "#/components/schemas/VendorPolicy"
+                      - type: "null"
+
+    put:
+      tags: [Policies]
+      summary: Crear o actualizar política del proveedor
+      operationId: upsertVendorPolicy
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  description: Descripción de la política
+            example:
+              description: "Política de devolución: hasta 30 días después de la compra."
+      responses:
+        "200":
+          description: Política guardada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Política guardada exitosamente"
+                  data:
+                    $ref: "#/components/schemas/VendorPolicy"
+
+  # ──────────────────────────────────────────────
+  # PAYMENT METHODS
+  # ──────────────────────────────────────────────
+  /api/vendors/payment-methods:
+    get:
+      tags: [Payment Methods]
+      summary: Listar todos los métodos de pago
+      operationId: listPaymentMethods
+      responses:
+        "200":
+          description: Lista de métodos de pago
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PaymentMethod"
+
+  /api/vendors/{vendor_id}/payment-methods:
+    get:
+      tags: [Payment Methods]
+      summary: Obtener métodos de pago de un proveedor
+      operationId: getVendorPaymentMethods
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Métodos de pago del proveedor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PaymentMethod"
+
+    put:
+      tags: [Payment Methods]
+      summary: Reemplazar métodos de pago de un proveedor
+      operationId: replaceVendorPaymentMethods
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [payment_method_ids]
+              properties:
+                payment_method_ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: IDs de métodos de pago a asignar
+            example:
+              payment_method_ids: [1, 3, 4]
+      responses:
+        "200":
+          description: Métodos de pago actualizados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Métodos de pago actualizados correctamente"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  # ──────────────────────────────────────────────
+  # LOGO
+  # ──────────────────────────────────────────────
+  /api/vendors/{vendor_id}/logo:
+    post:
+      tags: [Logo]
+      summary: Subir logotipo del proveedor
+      operationId: uploadVendorLogo
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [logo]
+              properties:
+                logo:
+                  type: string
+                  format: binary
+                  description: Archivo de imagen (PNG o JPG, máx. 2MB)
+      responses:
+        "200":
+          description: Logo actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Logo actualizado exitosamente"
+                  data:
+                    type: object
+                    properties:
+                      logo_url:
+                        type: string
+                        format: uri
+                        example: "https://xyz.supabase.co/storage/v1/object/public/logo_photos/vendors/1/logo.png?t=1717000000"
+        "400":
+          description: Error de validación (archivo no enviado o formato inválido)
+
+components:
+  schemas:
+    Vendor:
+      type: object
+      properties:
+        vendor_id:
+          type: integer
+          example: 1
+        vendor_name:
+          type: string
+          example: "Distribuidora ABC"
+        vendor_ruc:
+          type: string
+          example: "12345678901"
+        vendor_email:
+          type: string
+          format: email
+          example: "contacto@abc.com"
+        vendor_phone:
+          type: string
+          example: "+525512345678"
+        vendor_address:
+          type: string
+          example: "Av. Reforma 123, CDMX"
+        vendor_status:
+          type: string
+          enum: [PENDING, ACTIVE, INACTIVE, SUSPENDED]
+          example: "ACTIVE"
+        vendor_logo_url:
+          type: string
+          format: uri
+          nullable: true
+        user_id:
+          type: integer
+          example: 42
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateVendorRequest:
+      type: object
+      required: [vendor_name, vendor_email, vendor_ruc, user_id]
+      properties:
+        vendor_name:
+          type: string
+          description: Nombre del proveedor
+        vendor_email:
+          type: string
+          format: email
+          description: Correo electrónico del proveedor
+        vendor_ruc:
+          type: string
+          description: RUC del proveedor
+        user_id:
+          type: integer
+          description: ID del usuario asociado
+        vendor_phone:
+          type: string
+          description: Teléfono del proveedor
+        vendor_address:
+          type: string
+          description: Dirección del proveedor
+        categories:
+          type: array
+          items:
+            type: integer
+          description: IDs de categorías a asignar
+
+    UpdateVendorRequest:
+      type: object
+      properties:
+        vendor_name:
+          type: string
+        vendor_email:
+          type: string
+          format: email
+        vendor_phone:
+          type: string
+        vendor_address:
+          type: string
+
+    VendorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/Vendor"
+
+    Branch:
+      type: object
+      properties:
+        branch_id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        branch_name:
+          type: string
+          example: "Sucursal Centro"
+        branch_address:
+          type: string
+          example: "Calle Principal 456, Col. Centro"
+        branch_status:
+          type: string
+          enum: [ACTIVE, INACTIVE, MAINTENANCE]
+          example: "ACTIVE"
+        city_id:
+          type: integer
+          example: 1
+        cities:
+          type: object
+          properties:
+            city_id:
+              type: integer
+            city_name:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateBranchRequest:
+      type: object
+      required: [city_id, branch_address]
+      properties:
+        city_id:
+          type: integer
+          description: ID de la ciudad
+        branch_address:
+          type: string
+          description: Dirección de la sucursal
+        branch_name:
+          type: string
+          description: Nombre de la sucursal (opcional)
+
+    City:
+      type: object
+      properties:
+        city_id:
+          type: integer
+          example: 1
+        city_name:
+          type: string
+          example: "Ciudad de México"
+        state:
+          type: string
+          example: "CDMX"
+        country:
+          type: string
+          example: "México"
+
+    CommissionConfig:
+      type: object
+      properties:
+        config_id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        commission_rate:
+          type: number
+          format: float
+          example: 0.15
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Category:
+      type: object
+      properties:
+        category_id:
+          type: integer
+          example: 1
+        category_name:
+          type: string
+          example: "Electrónicos"
+        description:
+          type: string
+          example: "Productos electrónicos y accesorios"
+
+    VendorPolicy:
+      type: object
+      properties:
+        policy_id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        return_policy_description:
+          type: string
+          example: "Política de devolución: hasta 30 días después de la compra."
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PaymentMethod:
+      type: object
+      properties:
+        payment_method_id:
+          type: integer
+          example: 1
+        payment_method_name:
+          type: string
+          example: "Efectivo"
+        code:
+          type: string
+          example: "CASH"
+        description:
+          type: string
+        is_active:
+          type: boolean
+          example: true
+
+  responses:
+    ValidationError:
+      description: Error de validación
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "vendor_name es requerido; Email válido es requerido; RUC es requerido"
+    NotFoundError:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Proveedor no encontrado"
+    ConflictError:
+      description: Conflicto (recurso duplicado)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "El email ya está registrado por otro proveedor"
+
+tags:
+  - name: Health
+    description: Verificación de estado del servicio
+  - name: Vendors
+    description: Gestión de proveedores
+  - name: Branches
+    description: Gestión de sucursales
+  - name: Cities
+    description: Catálogo de ciudades
+  - name: Commissions
+    description: Configuración de comisiones
+  - name: Categories
+    description: Catálogo y asignación de categorías
+  - name: Policies
+    description: Políticas de proveedores
+  - name: Payment Methods
+    description: Catálogo y asignación de métodos de pago
+  - name: Logo
+    description: Carga de logotipos

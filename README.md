@@ -1,6 +1,6 @@
 # Vendor Service
 
-Microservicio de gestión de proveedores (Vendors). Construido con Node.js, Express y Supabase (PostgreSQL).
+Microservicio de gestión de proveedores. Proporciona CRUD de proveedores, sucursales, comisiones, categorías, políticas, métodos de pago y carga de logotipos. Construido con Node.js, Express y Supabase (PostgreSQL).
 
 ## Arquitectura
 
@@ -14,30 +14,50 @@ Controller → Service → Repository → Supabase (PostgreSQL)
 
 ## Endpoints
 
+### Health
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/health` | Verificar estado del servicio |
+
 ### Internos (requieren autenticación)
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | POST | `/api/vendors` | Crear proveedor |
-| GET | `/api/vendors` | Listar proveedores (filtros: `?status=ACTIVE`) |
-| GET | `/api/vendors/:id` | Obtener proveedor por ID |
-| PUT | `/api/vendors/:id` | Actualizar proveedor |
-| PATCH | `/api/vendors/:id/status` | Cambiar estado del proveedor |
-| POST | `/api/vendors/:vendorId/branches` | Crear sucursal |
-| GET | `/api/vendors/:vendorId/branches` | Listar sucursales de un proveedor |
-| GET | `/api/branches/:id` | Obtener sucursal por ID |
-| PUT | `/api/branches/:id` | Actualizar sucursal |
-| PATCH | `/api/branches/:id/status` | Cambiar estado de sucursal |
-| DELETE | `/api/branches/:id` | Eliminar sucursal |
+| GET | `/api/vendors` | Listar proveedores (`?vendor_status=ACTIVE`, `?vendor_email=`, `?vendor_ruc=`) |
+| GET | `/api/vendors/{vendor_id}` | Obtener proveedor por ID |
+| PATCH | `/api/vendors/{vendor_id}` | Actualizar proveedor |
+| PATCH | `/api/vendors/{vendor_id}/status` | Cambiar estado del proveedor |
+| GET | `/api/vendors/cities` | Listar ciudades disponibles |
+| POST | `/api/vendors/{vendor_id}/branches` | Crear sucursal |
+| GET | `/api/vendors/{vendor_id}/branches` | Listar sucursales de un proveedor |
+| GET | `/api/vendors/branches/{branch_id}` | Obtener sucursal por ID |
+| PATCH | `/api/vendors/branches/{branch_id}` | Actualizar sucursal |
+| PATCH | `/api/vendors/branches/{branch_id}/status` | Cambiar estado de sucursal |
+| DELETE | `/api/vendors/branches/{branch_id}` | Desactivar sucursal (borrado lógico) |
+| GET | `/api/vendors/{vendor_id}/commission` | Obtener configuración de comisión |
+| POST | `/api/vendors/{vendor_id}/commission` | Crear configuración de comisión |
+| PUT | `/api/vendors/commission/{config_id}` | Actualizar configuración de comisión |
+| DELETE | `/api/vendors/commission/{config_id}` | Eliminar configuración de comisión |
+| GET | `/api/vendors/categories` | Listar todas las categorías |
+| GET | `/api/vendors/{vendor_id}/categories` | Obtener categorías de un proveedor |
+| PUT | `/api/vendors/{vendor_id}/categories` | Reemplazar categorías de un proveedor |
+| GET | `/api/vendors/{vendor_id}/policy` | Obtener política del proveedor |
+| PUT | `/api/vendors/{vendor_id}/policy` | Crear o actualizar política del proveedor |
+| GET | `/api/vendors/payment-methods` | Listar todos los métodos de pago |
+| GET | `/api/vendors/{vendor_id}/payment-methods` | Obtener métodos de pago de un proveedor |
+| PUT | `/api/vendors/{vendor_id}/payment-methods` | Reemplazar métodos de pago de un proveedor |
+| POST | `/api/vendors/{vendor_id}/logo` | Subir logotipo del proveedor |
 
-### Externos (para otros microservicios)
+### Externos (para otros microservicios, requieren API Key interna)
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| GET | `/api/vendors/:id` | Obtener datos del proveedor |
-| GET | `/api/vendors?status=ACTIVE` | Listar proveedores activos |
-| GET | `/api/vendors/:id/status` | Obtener solo el estado del proveedor |
-| GET | `/api/vendors/:vendorId/branches` | Obtener sucursales de un proveedor |
+| GET | `/api/vendors/{vendor_id}` | Obtener datos del proveedor |
+| GET | `/api/vendors?vendor_status=ACTIVE` | Listar proveedores activos |
+| GET | `/api/vendors/{vendor_id}/status` | Obtener solo el estado del proveedor |
+| GET | `/api/vendors/{vendor_id}/branches` | Obtener sucursales de un proveedor |
 
 ## Comunicación con auth-service
 
@@ -126,6 +146,12 @@ INTERNAL_API_KEY=shared-secret-key-between-services
 - `ACTIVE` - Activo
 - `INACTIVE` - Inactivo
 - `SUSPENDED` - Suspendido
+
+## Estados de Sucursal
+
+- `ACTIVE` - Activo
+- `INACTIVE` - Inactivo
+- `MAINTENANCE` - Mantenimiento
 
 ## Instalación
 

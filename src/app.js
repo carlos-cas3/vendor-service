@@ -6,6 +6,7 @@ const helmet = require("helmet");
 
 const routes = require("./routes");
 
+/** @type {import('express').Express} */
 const app = express();
 
 const PORT = process.env.PORT || 3001;
@@ -24,6 +25,9 @@ const corsOptions = {
 app.use(helmet());
 app.use(cors(corsOptions));
 
+/**
+ * Maneja preflight requests OPTIONS.
+ */
 app.use((req, res, next) => {
     if (req.method === "OPTIONS") {
         return res.sendStatus(204);
@@ -36,7 +40,12 @@ app.use(express.json());
 // API ROUTES
 app.use("/api/vendors", routes);
 
-// HEALTHCHECK
+/**
+ * Healthcheck - verifica que el servicio esté operativo.
+ *
+ * @name GET /health
+ * @returns {{ status: string, service: string, timestamp: string }}
+ */
 app.get("/health", (req, res) => {
     res.json({
         status: "ok",
@@ -45,7 +54,10 @@ app.get("/health", (req, res) => {
     });
 });
 
-// ERROR HANDLER
+/**
+ * Middleware global de manejo de errores.
+ * Captura errores personalizados por su nombre (ValidationError -> 400, NotFoundError -> 404, ConflictError -> 409).
+ */
 app.use((err, req, res, next) => {
     console.error(`[ERROR] ${err.statusCode || 500} - ${err.message}`);
 
@@ -87,7 +99,9 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 404
+/**
+ * Middleware para rutas no encontradas (404).
+ */
 app.use((req, res) => {
     res.status(404).json({
         success: false,
