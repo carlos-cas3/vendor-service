@@ -4,8 +4,7 @@ const {
     NotFoundError,
     ConflictError,
 } = require("../utils/errors");
-const axios = require("axios");
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
+const authClient = require("../clients/auth.client");
 
 class VendorService {
     /**
@@ -130,26 +129,9 @@ class VendorService {
         const updated = await vendorRepository.updateStatus(vendor_id, status);
 
         if (vendor.user_id) {
-            try {
-                console.log(
-                    "secret enviado:",
-                    process.env.INTERNAL_SERVICE_SECRET,
-                ); // fuera del axios
-                await axios.patch(
-                    `${AUTH_SERVICE_URL}/api/admin/users/${vendor.user_id}/status`,
-                    { status },
-                    {
-                        timeout: 5000,
-                        headers: {
-                            "x-service-secret":
-                                process.env.INTERNAL_SERVICE_SECRET,
-                        },
-                    },
-                );
-            } catch (error) {
-                console.error("Error notificando auth-service:", error.message);
-            }
+            await authClient.updateUserStatus(vendor.user_id, status);
         }
+
         return updated;
     }
 
