@@ -14,7 +14,6 @@ class VendorRepository {
             vendor_email: data.vendor_email,
             vendor_phone: data.vendor_phone,
             vendor_address: data.vendor_address,
-            user_id: data.user_id,
         };
 
         const { data: vendor, error } = await supabase
@@ -213,6 +212,15 @@ class VendorRepository {
 
         if (error) throw error;
         return data;
+    }
+
+    async delete(vendor_id) {
+        const { error } = await supabase
+            .from("vendors")
+            .delete()
+            .eq("vendor_id", vendor_id);
+
+        if (error) throw error;
     }
 }
 

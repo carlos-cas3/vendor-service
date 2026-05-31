@@ -5,6 +5,7 @@ const {
     ConflictError,
 } = require("../utils/errors");
 const authClient = require("../clients/auth.client");
+const { generateTempPassword } = require("../utils/password.helpers");
 
 class VendorService {
     /**
@@ -27,14 +28,35 @@ class VendorService {
 
         const vendor = await vendorRepository.create(data);
 
+        const tempPassword = generateTempPassword();
+
+        let authUser;
+        try {
+            authUser = await authClient.createUser({
+                ...data,
+                vendor_id: vendor.vendor_id,
+                password: tempPassword,
+            });
+        } catch (error) {
+            await vendorRepository.delete(vendor.vendor_id);
+            throw new Error("Error creando usuario, se revirtió el vendor");
+        }
+
+        await vendorRepository.update(vendor.vendor_id, {
+            user_id: authUser.user_id,
+        });
+
         if (data.categories?.length > 0) {
             await vendorRepository.addCategories(
                 vendor.vendor_id,
                 data.categories,
             );
         }
-
-        return vendor;
+        return {
+            ...vendor,
+            user_id: authUser.user_id,
+            temp_password: tempPassword,
+        };
     }
 
     /**
@@ -156,25 +178,13 @@ class VendorService {
     _validateCreate(data) {
         const errors = [];
 
-        if (!data.vendor_name) {
-            errors.push("vendor_name es requerido");
-        }
-
+        if (!data.vendor_name) errors.push("vendor_name es requerido");
         if (!data.vendor_email || !this._isValidEmail(data.vendor_email)) {
             errors.push("Email válido es requerido");
         }
+        if (!data.vendor_ruc) errors.push("RUC es requerido");
 
-        if (!data.vendor_ruc) {
-            errors.push("RUC es requerido");
-        }
-
-        if (!data.user_id) {
-            errors.push("user_id es requerido");
-        }
-
-        if (errors.length > 0) {
-            throw new ValidationError(errors.join("; "));
-        }
+        if (errors.length > 0) throw new ValidationError(errors.join("; "));
     }
 
     /**
