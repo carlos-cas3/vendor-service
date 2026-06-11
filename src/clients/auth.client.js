@@ -57,7 +57,7 @@ async function createInternalUser(data) {
             },
             { headers, timeout: 5000 },
         );
-        return response.data;
+        return response.data.data;
     } catch (error) {
         if (error.response?.status === 409) {
             throw {
@@ -92,7 +92,7 @@ async function getInternalUsers(vendorId) {
                 timeout: 5000,
             },
         );
-        return response.data;
+        return response.data.data;
     } catch (error) {
         console.error(
             "Error obteniendo usuarios internos:",
@@ -102,9 +102,24 @@ async function getInternalUsers(vendorId) {
     }
 }
 
+async function updateUser(userId, data) {
+    const response = await axios.patch(
+        `${AUTH_URL}/api/ms/users/${userId}`,
+        {
+            first_name: data.first_name,
+            last_name: data.last_name,
+            email: data.email,
+            personal_phone: data.personal_phone,
+        },
+        { headers, timeout: 5000 },
+    );
+    return response.data.data;
+}
+
 module.exports = {
     createUser,
     updateUserStatus,
     createInternalUser,
     getInternalUsers,
+    updateUser,
 };
