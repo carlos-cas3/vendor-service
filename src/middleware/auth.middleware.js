@@ -1,53 +1,37 @@
-const { httpRequest } = require("../utils/http-client");
+const jwt = require("jsonwebtoken");
 
 async function authMiddleware(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+        return res
+            .status(401)
+            .json({ success: false, message: "Token requerido" });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+        return res.status(500).json({
+            success: false,
+            message: "JWT_SECRET no configurado",
+        });
+    }
+
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader?.startsWith("Bearer ")) {
-            return res
-                .status(401)
-                .json({ success: false, message: "Token requerido" });
-        }
-
-        const token = authHeader.replace("Bearer ", "");
-        const authServiceUrl = process.env.AUTH_SERVICE_URL;
-
-        if (!authServiceUrl) {
-            return res.status(500).json({
-                success: false,
-                message: "AUTH_SERVICE_URL no configurado",
-            });
-        }
-
-        const { status, data } = await httpRequest(
-            `${authServiceUrl}/api/auth/verify`,
-            {
-                method: "POST",
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 3000,
-            },
-        );
-
-        if (status !== 200 || !data?.user) {
-            return res
-                .status(401)
-                .json({ success: false, message: "Token inválido o expirado" });
-        }
-
-        req.user = data.user;
+        const decoded = jwt.verify(token, secret);
+        req.user = decoded;
         next();
     } catch (error) {
-        console.error("Auth service error:", error.message);
-        return res.status(503).json({
-            success: false,
-            message: "Servicio de autenticación no disponible",
-        });
+        return res
+            .status(401)
+            .json({ success: false, message: "Token inválido o expirado" });
     }
 }
 
 async function internalApiKeyMiddleware(req, res, next) {
     const apiKey = req.headers["x-internal-key"];
-    const expectedKey = process.env.INTERNAL_API_KEY;
+    const expectedKey = process.env.INTERNAL_SERVICE_SECRET;
 
     if (!apiKey || apiKey !== expectedKey) {
         return res

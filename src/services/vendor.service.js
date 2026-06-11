@@ -4,8 +4,8 @@ const {
     NotFoundError,
     ConflictError,
 } = require("../utils/errors");
-const axios = require("axios");
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
+const authClient = require("../clients/auth.client");
+const { generateTempPassword } = require("../utils/password.helpers");
 
 class VendorService {
     /**
@@ -28,14 +28,35 @@ class VendorService {
 
         const vendor = await vendorRepository.create(data);
 
+        const tempPassword = generateTempPassword();
+
+        let authUser;
+        try {
+            authUser = await authClient.createUser({
+                ...data,
+                vendor_id: vendor.vendor_id,
+                password: tempPassword,
+            });
+        } catch (error) {
+            await vendorRepository.delete(vendor.vendor_id);
+            throw new Error("Error creando usuario, se revirtió el vendor");
+        }
+
+        await vendorRepository.update(vendor.vendor_id, {
+            user_id: authUser.user_id,
+        });
+
         if (data.categories?.length > 0) {
             await vendorRepository.addCategories(
                 vendor.vendor_id,
                 data.categories,
             );
         }
-
-        return vendor;
+        return {
+            ...vendor,
+            user_id: authUser.user_id,
+            temp_password: tempPassword,
+        };
     }
 
     /**
@@ -130,26 +151,9 @@ class VendorService {
         const updated = await vendorRepository.updateStatus(vendor_id, status);
 
         if (vendor.user_id) {
-            try {
-                console.log(
-                    "secret enviado:",
-                    process.env.INTERNAL_SERVICE_SECRET,
-                ); // fuera del axios
-                await axios.patch(
-                    `${AUTH_SERVICE_URL}/api/admin/users/${vendor.user_id}/status`,
-                    { status },
-                    {
-                        timeout: 5000,
-                        headers: {
-                            "x-service-secret":
-                                process.env.INTERNAL_SERVICE_SECRET,
-                        },
-                    },
-                );
-            } catch (error) {
-                console.error("Error notificando auth-service:", error.message);
-            }
+            await authClient.updateUserStatus(vendor.user_id, status);
         }
+
         return updated;
     }
 
@@ -174,25 +178,13 @@ class VendorService {
     _validateCreate(data) {
         const errors = [];
 
-        if (!data.vendor_name) {
-            errors.push("vendor_name es requerido");
-        }
-
+        if (!data.vendor_name) errors.push("vendor_name es requerido");
         if (!data.vendor_email || !this._isValidEmail(data.vendor_email)) {
             errors.push("Email válido es requerido");
         }
+        if (!data.vendor_ruc) errors.push("RUC es requerido");
 
-        if (!data.vendor_ruc) {
-            errors.push("RUC es requerido");
-        }
-
-        if (!data.user_id) {
-            errors.push("user_id es requerido");
-        }
-
-        if (errors.length > 0) {
-            throw new ValidationError(errors.join("; "));
-        }
+        if (errors.length > 0) throw new ValidationError(errors.join("; "));
     }
 
     /**
