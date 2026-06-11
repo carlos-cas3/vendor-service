@@ -20,4 +20,25 @@ router.post(
     staffController.create,
 );
 
+router.get(
+    "/staff/:staff_id",
+    authMiddleware,
+    requireRole([ROLES.VENDOR_ADMIN]),
+    staffController.findById,
+);
+
+router.patch(
+    "/staff/:staff_id",
+    authMiddleware,
+    requireRole([ROLES.VENDOR_ADMIN]),
+    staffController.update,
+);
+
+router.delete(
+    "/staff/:staff_id",
+    authMiddleware,
+    requireRole([ROLES.VENDOR_ADMIN]),
+    staffController.deactivate,
+);
+
 module.exports = router;

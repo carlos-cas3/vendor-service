@@ -13,6 +13,20 @@ const createStaffSchema = Joi.object({
         .required(),
 });
 
+const updateStaffSchema = Joi.object({
+    first_name: Joi.string().trim().min(1).max(100).optional(),
+    last_name: Joi.string().trim().min(1).max(100).optional(),
+    email: Joi.string().email().optional(),
+    personal_phone: Joi.string().trim().max(20).optional().allow(""),
+    availability_status: Joi.string()
+        .valid("available", "unavailable")
+        .optional(),
+}).min(1);
+
+const staffIdParamSchema = Joi.object({
+    staff_id: Joi.number().integer().positive().required(),
+});
+
 class StaffController {
     async create(req, res, next) {
         try {
@@ -43,6 +57,101 @@ class StaffController {
             const vendor_id = req.user.vendorId;
 
             const result = await staffService.getStaff(vendor_id);
+
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async findById(req, res, next) {
+        try {
+            const { error, value } = staffIdParamSchema.validate(
+                req.params,
+                { abortEarly: false },
+            );
+
+            if (error) {
+                const messages = error.details
+                    .map((d) => d.message)
+                    .join("; ");
+                throw new ValidationError(messages);
+            }
+
+            const vendor_id = req.user.vendorId;
+
+            const result = await staffService.getStaffById(
+                value.staff_id,
+                vendor_id,
+            );
+
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async update(req, res, next) {
+        try {
+            const { error: paramsError, value: params } =
+                staffIdParamSchema.validate(req.params, {
+                    abortEarly: false,
+                });
+
+            if (paramsError) {
+                const messages = paramsError.details
+                    .map((d) => d.message)
+                    .join("; ");
+                throw new ValidationError(messages);
+            }
+
+            const { error: bodyError, value } =
+                updateStaffSchema.validate(req.body, {
+                    abortEarly: false,
+                    stripUnknown: true,
+                });
+
+            if (bodyError) {
+                const messages = bodyError.details
+                    .map((d) => d.message)
+                    .join("; ");
+                throw new ValidationError(messages);
+            }
+
+            const vendor_id = req.user.vendorId;
+
+            const result = await staffService.updateStaff(
+                params.staff_id,
+                vendor_id,
+                value,
+            );
+
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async deactivate(req, res, next) {
+        try {
+            const { error, value } = staffIdParamSchema.validate(
+                req.params,
+                { abortEarly: false },
+            );
+
+            if (error) {
+                const messages = error.details
+                    .map((d) => d.message)
+                    .join("; ");
+                throw new ValidationError(messages);
+            }
+
+            const vendor_id = req.user.vendorId;
+
+            const result = await staffService.deactivateStaff(
+                value.staff_id,
+                vendor_id,
+            );
 
             res.status(200).json(result);
         } catch (error) {

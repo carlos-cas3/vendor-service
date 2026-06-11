@@ -2,6 +2,7 @@ const authClient = require("../clients/auth.client");
 const staffRepository = require("../repositories/staff.repository");
 const {
     ConflictError,
+    NotFoundError,
     ValidationError,
 } = require("../utils/errors");
 
@@ -37,6 +38,45 @@ class StaffService {
     async getStaff(vendor_id) {
         const staff = await staffRepository.findByVendorId(vendor_id);
         return staff;
+    }
+
+    async getStaffById(staffId, vendor_id) {
+        const staff = await staffRepository.findById(staffId);
+        if (!staff || staff.vendor_id !== vendor_id) {
+            throw new NotFoundError("Staff no encontrado");
+        }
+        return staff;
+    }
+
+    async updateStaff(staffId, vendor_id, data) {
+        const staff = await this.getStaffById(staffId, vendor_id);
+
+        if (data.email && data.email !== staff.email) {
+            const existing = await staffRepository.findByEmail(
+                vendor_id,
+                data.email,
+                staffId,
+            );
+            if (existing) {
+                throw new ConflictError(
+                    "El email ya está registrado para otro staff de este vendor",
+                );
+            }
+        }
+
+        await authClient.updateUser(staff.user_id, data);
+
+        const updated = await staffRepository.update(staffId, data);
+        return updated;
+    }
+
+    async deactivateStaff(staffId, vendor_id) {
+        const staff = await this.getStaffById(staffId, vendor_id);
+
+        await authClient.updateUserStatus(staff.user_id, "INACTIVE");
+
+        const updated = await staffRepository.updateStatus(staffId, "INACTIVE");
+        return updated;
     }
 }
 
