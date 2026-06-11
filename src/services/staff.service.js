@@ -1,4 +1,5 @@
 const authClient = require("../clients/auth.client");
+const staffRepository = require("../repositories/staff.repository");
 const {
     ConflictError,
     ValidationError,
@@ -6,28 +7,36 @@ const {
 
 class StaffService {
     async createStaff(data, vendor_id) {
+        const result = await authClient.createInternalUser({
+            ...data,
+            vendor_id,
+        });
+
         try {
-            const result = await authClient.createInternalUser({
-                ...data,
+            const staff = await staffRepository.create({
+                user_id: result.user_id,
                 vendor_id,
+                role_id: data.role_id,
+                first_name: data.first_name,
+                last_name: data.last_name,
+                email: data.email,
+                personal_phone: data.personal_phone,
             });
-            return result;
+
+            return staff;
         } catch (error) {
-            if (error.code === "EMAIL_CONFLICT") {
-                throw new ConflictError(error.message);
-            }
-            if (error.code === "VALIDATION_ERROR") {
-                throw new ValidationError(error.message);
-            }
+            console.error(
+                `[ORPHAN] Usuario creado en auth-service (user_id=${result.user_id}) pero falló insert local. Limpiar manualmente.`,
+            );
             throw new Error(
-                "Error al crear usuario en el servicio de autenticación",
+                "Error al guardar el staff localmente, el usuario en auth-service queda registrado",
             );
         }
     }
 
-    async getStaff(vendorId) {
-        const result = await authClient.getInternalUsers(vendorId);
-        return result;
+    async getStaff(vendor_id) {
+        const staff = await staffRepository.findByVendorId(vendor_id);
+        return staff;
     }
 }
 

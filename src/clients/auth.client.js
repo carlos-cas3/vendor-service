@@ -57,7 +57,7 @@ async function createInternalUser(data) {
             },
             { headers, timeout: 5000 },
         );
-        return response.data;
+        return response.data.data;
     } catch (error) {
         if (error.response?.status === 409) {
             throw {
@@ -92,7 +92,7 @@ async function getInternalUsers(vendorId) {
                 timeout: 5000,
             },
         );
-        return response.data;
+        return response.data.data;
     } catch (error) {
         console.error(
             "Error obteniendo usuarios internos:",
