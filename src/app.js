@@ -5,6 +5,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 
 const routes = require("./routes");
+const internalRoutes = require("./routes/internal.routes");
 
 /** @type {import('express').Express} */
 const app = express();
@@ -39,6 +40,9 @@ app.use(express.json());
 
 // API ROUTES
 app.use("/api/vendors", routes);
+
+// Internal routes (inter-service communication, x-service-secret)
+app.use("/api", internalRoutes);
 
 /**
  * Healthcheck - verifica que el servicio esté operativo.
