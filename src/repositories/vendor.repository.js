@@ -146,6 +146,9 @@ class VendorRepository {
         if (data.vendor_address !== undefined)
             payload.vendor_address = data.vendor_address;
 
+        if (data.user_id !== undefined)
+            payload.user_id = data.user_id;
+
         const { data: vendor, error } = await supabase
             .from("vendors")
             .update(payload)
