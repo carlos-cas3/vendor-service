@@ -158,6 +158,21 @@ class StaffController {
             next(error);
         }
     }
+
+    async listInternal(req, res, next) {
+        try {
+            const vendor_id = parseInt(req.query.vendor_id);
+            if (!vendor_id) {
+                throw new ValidationError("vendor_id es requerido");
+            }
+
+            const result = await staffService.getStaff(vendor_id);
+
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = new StaffController();

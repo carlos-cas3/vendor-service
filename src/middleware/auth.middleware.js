@@ -42,4 +42,17 @@ async function internalApiKeyMiddleware(req, res, next) {
     next();
 }
 
-module.exports = { authMiddleware, internalApiKeyMiddleware };
+function serviceAuthMiddleware(req, res, next) {
+    const serviceSecret = req.headers["x-service-secret"];
+    const expectedSecret = process.env.INTERNAL_SERVICE_SECRET;
+
+    if (!serviceSecret || serviceSecret !== expectedSecret) {
+        return res
+            .status(401)
+            .json({ success: false, message: "Service secret inválido" });
+    }
+
+    next();
+}
+
+module.exports = { authMiddleware, internalApiKeyMiddleware, serviceAuthMiddleware };
