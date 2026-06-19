@@ -355,6 +355,33 @@ paths:
                     items:
                       $ref: "#/components/schemas/Branch"
 
+  /api/vendors/{vendor_id}/branches/active:
+    get:
+      tags: [Branches]
+      summary: Listar sucursales activas de un proveedor
+      operationId: listActiveBranchesByVendor
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lista de sucursales activas del proveedor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Branch"
+
   /api/vendors/branches/{branch_id}:
     get:
       tags: [Branches]
@@ -647,6 +674,189 @@ paths:
                   message:
                     type: string
                     example: "Configuración eliminada"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  # ──────────────────────────────────────────────
+  # STAFF
+  # ──────────────────────────────────────────────
+  /api/vendors/staff:
+    get:
+      tags: [Staff]
+      summary: Listar staff del vendor autenticado
+      operationId: listStaff
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista del staff activo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VendorStaff"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+
+    post:
+      tags: [Staff]
+      summary: Crear un miembro del staff
+      operationId: createStaff
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStaffRequest"
+            example:
+              first_name: "Juan"
+              last_name: "Pérez"
+              email: "juan@ejemplo.com"
+              role_id: 3
+      responses:
+        "201":
+          description: Staff creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/VendorStaff"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+  /api/vendors/staff/{staff_id}:
+    get:
+      tags: [Staff]
+      summary: Obtener miembro del staff por ID
+      operationId: getStaffById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: staff_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Datos del staff
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/VendorStaff"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    patch:
+      tags: [Staff]
+      summary: Actualizar miembro del staff
+      operationId: updateStaff
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: staff_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStaffRequest"
+            example:
+              first_name: "Juan Actualizado"
+              availability_status: "unavailable"
+      responses:
+        "200":
+          description: Staff actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Staff actualizado exitosamente"
+                  data:
+                    $ref: "#/components/schemas/VendorStaff"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+    delete:
+      tags: [Staff]
+      summary: Desactivar miembro del staff (borrado lógico)
+      operationId: deactivateStaff
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: staff_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Staff desactivado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Staff desactivado exitosamente"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
         "404":
           $ref: "#/components/responses/NotFoundError"
 
@@ -960,6 +1170,41 @@ paths:
         "400":
           description: Error de validación (archivo no enviado o formato inválido)
 
+  # ──────────────────────────────────────────────
+  # INTERNAL (inter-service)
+  # ──────────────────────────────────────────────
+  /api/internal/staff:
+    get:
+      tags: [Internal]
+      summary: Listar staff por vendor_id (inter-service)
+      operationId: listStaffInternal
+      security:
+        - serviceSecret: []
+      parameters:
+        - name: vendor_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID del vendor
+      responses:
+        "200":
+          description: Lista del staff del vendor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VendorStaff"
+        "401":
+          description: Service secret inválido o faltante
+
 components:
   schemas:
     Vendor:
@@ -1054,6 +1299,93 @@ components:
           type: string
         data:
           $ref: "#/components/schemas/Vendor"
+
+    VendorStaff:
+      type: object
+      properties:
+        staff_id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 10
+        vendor_id:
+          type: integer
+          example: 1
+        role_id:
+          type: integer
+          example: 3
+          description: "1=SUPER_ADMIN, 2=VENDOR_ADMIN, 3=SUPERVISOR, 4=SELLER"
+        first_name:
+          type: string
+          example: "Juan"
+        last_name:
+          type: string
+          example: "Pérez"
+        email:
+          type: string
+          format: email
+          example: "juan@ejemplo.com"
+        personal_phone:
+          type: string
+          nullable: true
+          example: "+525512345678"
+        status:
+          type: string
+          example: "ACTIVE"
+        availability_status:
+          type: string
+          nullable: true
+          example: "available"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateStaffRequest:
+      type: object
+      required: [first_name, last_name, email, role_id]
+      properties:
+        first_name:
+          type: string
+          description: Nombre del staff
+        last_name:
+          type: string
+          description: Apellido del staff
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del staff
+        personal_phone:
+          type: string
+          description: Teléfono personal (opcional)
+        role_id:
+          type: integer
+          enum: [3, 4]
+          description: "Rol del staff (3=SUPERVISOR, 4=SELLER)"
+
+    UpdateStaffRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          description: Nombre del staff
+        last_name:
+          type: string
+          description: Apellido del staff
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del staff
+        personal_phone:
+          type: string
+          description: Teléfono personal
+        availability_status:
+          type: string
+          enum: [available, unavailable]
+          description: Estado de disponibilidad
 
     Branch:
       type: object
@@ -1191,6 +1523,18 @@ components:
           type: boolean
           example: true
 
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT de autenticación del usuario
+    serviceSecret:
+      type: apiKey
+      in: header
+      name: x-service-secret
+      description: Service secret para comunicación entre microservicios
+
   responses:
     ValidationError:
       description: Error de validación
@@ -1231,6 +1575,32 @@ components:
               message:
                 type: string
                 example: "El email ya está registrado por otro proveedor"
+    UnauthorizedError:
+      description: No autorizado (token inválido o faltante)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Token requerido"
+    ForbiddenError:
+      description: Permisos insuficientes
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "No tienes permisos para esta acción"
 
 tags:
   - name: Health
@@ -1251,3 +1621,7 @@ tags:
     description: Catálogo y asignación de métodos de pago
   - name: Logo
     description: Carga de logotipos
+  - name: Staff
+    description: Gestión de personal (staff) de proveedores
+  - name: Internal
+    description: Endpoints para comunicación entre microservicios

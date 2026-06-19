@@ -7,6 +7,14 @@ const {
 } = require("../utils/errors");
 
 class StaffService {
+    /**
+     * Crea un staff local y su usuario en auth-service.
+     *
+     * @param {{ first_name: string, last_name: string, email: string, personal_phone?: string, role_id: number }} data - Datos del staff
+     * @param {number} vendor_id - ID del vendor
+     * @returns {Promise<Object>} Staff creado
+     * @throws {ConflictError} Si el email ya está registrado en auth-service
+     */
     async createStaff(data, vendor_id) {
         const result = await authClient.createInternalUser({
             ...data,
@@ -35,11 +43,25 @@ class StaffService {
         }
     }
 
+    /**
+     * Obtiene el staff activo de un vendor.
+     *
+     * @param {number} vendor_id - ID del vendor
+     * @returns {Promise<Array>} Lista de staff activo
+     */
     async getStaff(vendor_id) {
         const staff = await staffRepository.findByVendorId(vendor_id);
         return staff;
     }
 
+    /**
+     * Obtiene un miembro del staff por ID, validando que pertenezca al vendor.
+     *
+     * @param {number} staffId - ID del staff
+     * @param {number} vendor_id - ID del vendor
+     * @returns {Promise<Object>} Staff encontrado
+     * @throws {NotFoundError} Si no existe o no pertenece al vendor
+     */
     async getStaffById(staffId, vendor_id) {
         const staff = await staffRepository.findById(staffId);
         if (!staff || staff.vendor_id !== vendor_id) {
@@ -48,6 +70,16 @@ class StaffService {
         return staff;
     }
 
+    /**
+     * Actualiza un miembro del staff y sincroniza con auth-service.
+     *
+     * @param {number} staffId - ID del staff
+     * @param {number} vendor_id - ID del vendor
+     * @param {{ first_name?: string, last_name?: string, email?: string, personal_phone?: string, availability_status?: string }} data - Datos a actualizar
+     * @returns {Promise<Object>} Staff actualizado
+     * @throws {NotFoundError} Si el staff no existe
+     * @throws {ConflictError} Si el email ya está registrado para otro staff del mismo vendor
+     */
     async updateStaff(staffId, vendor_id, data) {
         const staff = await this.getStaffById(staffId, vendor_id);
 
@@ -70,6 +102,14 @@ class StaffService {
         return updated;
     }
 
+    /**
+     * Desactiva un miembro del staff (borrado lógico) y su usuario en auth-service.
+     *
+     * @param {number} staffId - ID del staff
+     * @param {number} vendor_id - ID del vendor
+     * @returns {Promise<Object>} Staff desactivado
+     * @throws {NotFoundError} Si el staff no existe
+     */
     async deactivateStaff(staffId, vendor_id) {
         const staff = await this.getStaffById(staffId, vendor_id);
 

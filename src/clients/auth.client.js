@@ -9,6 +9,13 @@ const headers = {
     "Content-Type": "application/json",
 };
 
+/**
+ * Crea un usuario en auth-service para el registro de vendor.
+ *
+ * @param {{ first_name: string, last_name: string, vendor_email: string, vendor_phone?: string, vendor_id: number }} data - Datos del usuario
+ * @returns {Promise<Object>} Usuario creado
+ * @throws {Error} Si el auth-service no responde
+ */
 async function createUser(data) {
     try {
         const response = await axios.post(
@@ -29,6 +36,14 @@ async function createUser(data) {
     }
 }
 
+/**
+ * Actualiza el estado de un usuario en auth-service.
+ *
+ * @param {number} user_id - ID del usuario en auth-service
+ * @param {string} status - Nuevo estado (ACTIVE, INACTIVE)
+ * @returns {Promise<void>}
+ * @throws {Error} Si el auth-service no responde
+ */
 async function updateUserStatus(user_id, status) {
     try {
         await axios.patch(
@@ -42,6 +57,13 @@ async function updateUserStatus(user_id, status) {
     }
 }
 
+/**
+ * Crea un usuario interno (staff) en auth-service.
+ *
+ * @param {{ first_name: string, last_name: string, email: string, personal_phone?: string, role_id: number, vendor_id: number }} data - Datos del staff
+ * @returns {Promise<Object>} Usuario creado con user_id
+ * @throws {{ code: string, message: string }} Si hay conflicto de email (409) o datos inválidos (400)
+ */
 async function createInternalUser(data) {
     try {
         const response = await axios.post(
@@ -81,6 +103,13 @@ async function createInternalUser(data) {
     }
 }
 
+/**
+ * Obtiene usuarios internos de auth-service por vendor_id.
+ *
+ * @param {number} vendorId - ID del vendor
+ * @returns {Promise<Array>} Lista de usuarios internos
+ * @throws {Error} Si el auth-service no responde
+ */
 async function getInternalUsers(vendorId) {
     try {
         const response = await axios.get(
@@ -101,6 +130,14 @@ async function getInternalUsers(vendorId) {
     }
 }
 
+/**
+ * Actualiza un usuario en auth-service por microservicio interno.
+ *
+ * @param {number} userId - ID del usuario en auth-service
+ * @param {{ first_name?: string, last_name?: string, email?: string, personal_phone?: string }} data - Datos a actualizar
+ * @returns {Promise<Object>} Usuario actualizado
+ * @throws {Error} Si el auth-service no responde
+ */
 async function updateUser(userId, data) {
     const response = await axios.patch(
         `${AUTH_URL}/api/ms/users/${userId}`,
