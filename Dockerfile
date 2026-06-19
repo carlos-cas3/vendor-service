@@ -8,6 +8,7 @@ RUN addgroup -g 1001 -S appgroup && adduser -S appuser -u 1001 -G appgroup
 WORKDIR /app
 COPY --from=deps --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --chown=appuser:appgroup src/ ./src/
+COPY --chown=appuser:appgroup docs/ ./docs/
 COPY --chown=appuser:appgroup package*.json ./
 USER appuser
 EXPOSE 3001
