@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const ANALYTICS_URL = process.env.ANALYTICS_SERVICE_URL;
 const API_KEY = process.env.ANALYTICS_API_KEY;
 
-async function sendEvent({ type, aggregateType, aggregateId, vendorId, payload }) {
+async function sendEvent({ type, aggregateType, aggregateId, vendorIds, payload }) {
     if (!ANALYTICS_URL || !API_KEY) return;
 
     const event = {
@@ -13,7 +13,7 @@ async function sendEvent({ type, aggregateType, aggregateId, vendorId, payload }
         service: "vendor-service",
         aggregate_type: aggregateType,
         aggregate_id: String(aggregateId),
-        vendor_id: vendorId ? String(vendorId) : null,
+        vendor_ids: vendorIds || [],
         event_timestamp: new Date().toISOString(),
         payload: payload || {},
     };

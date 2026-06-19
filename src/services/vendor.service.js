@@ -55,7 +55,7 @@ class VendorService {
             type: "VENDOR_CREATED",
             aggregateType: "vendor",
             aggregateId: vendor.vendor_id,
-            vendorId: vendor.vendor_id,
+            vendorIds: [String(vendor.vendor_id)],
             payload: { name: vendor.vendor_name },
         });
 
@@ -146,7 +146,7 @@ class VendorService {
                 type: "VENDOR_UPDATED",
                 aggregateType: "vendor",
                 aggregateId: vendor.vendor_id,
-                vendorId: vendor.vendor_id,
+                vendorIds: [String(vendor.vendor_id)],
                 payload: { name: updated.vendor_name },
             });
         }
@@ -183,7 +183,7 @@ class VendorService {
             type: "VENDOR_STATUS_CHANGED",
             aggregateType: "vendor",
             aggregateId: vendor.vendor_id,
-            vendorId: vendor.vendor_id,
+            vendorIds: [String(vendor.vendor_id)],
             payload: { status },
         });
 
