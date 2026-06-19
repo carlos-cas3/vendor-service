@@ -5,6 +5,7 @@ const {
     ConflictError,
 } = require("../utils/errors");
 const authClient = require("../clients/auth.client");
+const { sendEvent } = require("../clients/analytics.client");
 
 
 class VendorService {
@@ -49,6 +50,15 @@ class VendorService {
                 data.categories,
             );
         }
+
+        sendEvent({
+            type: "VENDOR_CREATED",
+            aggregateType: "vendor",
+            aggregateId: vendor.vendor_id,
+            vendorId: vendor.vendor_id,
+            payload: { name: vendor.vendor_name },
+        });
+
         return {
             ...vendor,
             user_id: authUser.user_id,
@@ -122,7 +132,26 @@ class VendorService {
             }
         }
 
-        return vendorRepository.update(vendor_id, data);
+        const updated = await vendorRepository.update(vendor_id, data);
+
+        const vendorFields = [
+            "vendor_name",
+            "vendor_email",
+            "vendor_phone",
+            "vendor_address",
+        ];
+        const hasChanges = vendorFields.some((f) => f in data);
+        if (hasChanges) {
+            sendEvent({
+                type: "VENDOR_UPDATED",
+                aggregateType: "vendor",
+                aggregateId: vendor.vendor_id,
+                vendorId: vendor.vendor_id,
+                payload: { name: updated.vendor_name },
+            });
+        }
+
+        return updated;
     }
 
     /**
@@ -149,6 +178,14 @@ class VendorService {
         if (vendor.user_id) {
             await authClient.updateUserStatus(vendor.user_id, status);
         }
+
+        sendEvent({
+            type: "VENDOR_STATUS_CHANGED",
+            aggregateType: "vendor",
+            aggregateId: vendor.vendor_id,
+            vendorId: vendor.vendor_id,
+            payload: { status },
+        });
 
         return updated;
     }
