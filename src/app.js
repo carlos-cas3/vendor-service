@@ -6,6 +6,14 @@ const helmet = require("helmet");
 
 const routes = require("./routes");
 const internalRoutes = require("./routes/internal.routes");
+const swaggerUi = require("swagger-ui-express");
+const yaml = require("js-yaml");
+const fs = require("fs");
+const path = require("path");
+
+const swaggerDocument = yaml.load(
+    fs.readFileSync(path.join(__dirname, "../docs/openapi.yaml"), "utf8"),
+);
 
 /** @type {import('express').Express} */
 const app = express();
@@ -57,6 +65,9 @@ app.get("/health", (req, res) => {
         timestamp: new Date().toISOString(),
     });
 });
+
+// Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 /**
  * Middleware global de manejo de errores.

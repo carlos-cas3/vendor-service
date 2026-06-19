@@ -1,6 +1,12 @@
 const supabase = require("../database/connection");
 
 class StaffRepository {
+    /**
+     * Crea un registro de staff en la base de datos.
+     *
+     * @param {{ user_id: number, vendor_id: number, role_id: number, first_name: string, last_name: string, email: string, personal_phone?: string }} data - Datos del staff
+     * @returns {Promise<Object>} Staff creado
+     */
     async create(data) {
         const { data: staff, error } = await supabase
             .from("vendor_staff")
@@ -23,6 +29,12 @@ class StaffRepository {
         return staff;
     }
 
+    /**
+     * Obtiene el staff activo de un vendor.
+     *
+     * @param {number} vendorId - ID del vendor
+     * @returns {Promise<Array>} Lista de staff activo
+     */
     async findByVendorId(vendorId) {
         const { data, error } = await supabase
             .from("vendor_staff")
@@ -36,6 +48,12 @@ class StaffRepository {
         return data;
     }
 
+    /**
+     * Obtiene un staff por su ID.
+     *
+     * @param {number} staffId - ID del staff
+     * @returns {Promise<Object|null>} Staff encontrado o null
+     */
     async findById(staffId) {
         const { data: staff, error } = await supabase
             .from("vendor_staff")
@@ -49,6 +67,14 @@ class StaffRepository {
         return staff;
     }
 
+    /**
+     * Busca staff por email dentro de un vendor, opcionalmente excluyendo un ID.
+     *
+     * @param {number} vendorId - ID del vendor
+     * @param {string} email - Email a buscar
+     * @param {number} [excludeId] - staff_id a excluir (para validación en actualización)
+     * @returns {Promise<Object|null>} Staff encontrado o null
+     */
     async findByEmail(vendorId, email, excludeId) {
         let query = supabase
             .from("vendor_staff")
@@ -67,6 +93,13 @@ class StaffRepository {
         return data;
     }
 
+    /**
+     * Actualiza los datos de un staff.
+     *
+     * @param {number} staffId - ID del staff
+     * @param {Object} data - Campos a actualizar
+     * @returns {Promise<Object>} Staff actualizado
+     */
     async update(staffId, data) {
         const { data: staff, error } = await supabase
             .from("vendor_staff")
@@ -83,6 +116,13 @@ class StaffRepository {
         return staff;
     }
 
+    /**
+     * Actualiza el estado de un staff (activo/inactivo).
+     *
+     * @param {number} staffId - ID del staff
+     * @param {string} status - Nuevo estado (ACTIVE, INACTIVE)
+     * @returns {Promise<Object>} Staff actualizado
+     */
     async updateStatus(staffId, status) {
         const { data: staff, error } = await supabase
             .from("vendor_staff")

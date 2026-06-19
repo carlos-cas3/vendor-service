@@ -4,6 +4,15 @@ const crypto = require("crypto");
 const ANALYTICS_URL = process.env.ANALYTICS_SERVICE_URL;
 const API_KEY = process.env.ANALYTICS_API_KEY;
 
+/**
+ * Envía un evento al servicio de analytics (fire-and-forget).
+ *
+ * @param {{ type: string, aggregateType: string, aggregateId: number|string, vendorIds?: number[], payload?: Object }} eventData - Datos del evento
+ * @returns {Promise<void>}
+ *
+ * @example
+ * sendEvent({ type: "vendor.created", aggregateType: "vendor", aggregateId: 1, vendorIds: [1] })
+ */
 async function sendEvent({ type, aggregateType, aggregateId, vendorIds, payload }) {
     if (!ANALYTICS_URL || !API_KEY) return;
 
