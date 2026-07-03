@@ -5,6 +5,16 @@ const {
   serviceAuthMiddleware,
 } = require("../../middleware/auth.middleware");
 
+beforeAll(() => {
+  process.env.JWT_SECRET = "mi-secreto";
+  process.env.INTERNAL_SERVICE_SECRET = "secret-key";
+});
+
+afterAll(() => {
+  delete process.env.JWT_SECRET;
+  delete process.env.INTERNAL_SERVICE_SECRET;
+});
+
 describe("authMiddleware", () => {
   let req;
   let res;

@@ -31,6 +31,10 @@ beforeEach(() => {
   process.env.JWT_SECRET = JWT_SECRET;
 });
 
+afterAll(() => {
+  delete process.env.JWT_SECRET;
+});
+
 describe("GET /api/vendors/staff", () => {
   it("retorna 200 con lista de staff", async () => {
     // Arrange
