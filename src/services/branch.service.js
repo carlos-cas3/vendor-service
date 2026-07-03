@@ -5,6 +5,7 @@ const vendorRepository = require("../repositories/vendor.repository");
 const cityRepository = require("../repositories/city.repository");
 
 const { ValidationError, NotFoundError } = require("../utils/errors");
+const { sendEvent } = require("../clients/analytics.client");
 
 class BranchService {
     /**
@@ -28,17 +29,26 @@ class BranchService {
 
         await this._validateCreate(data);
 
-        return branchRepository.create({
+        const branch = await branchRepository.create({
             vendor_id: vendorId,
-
             city_id: data.city_id,
-
             branch_name: data.branch_name || null,
-
             branch_address: data.branch_address,
-
             branch_status: "ACTIVE",
         });
+
+        sendEvent({
+            type: "BRANCH_CREATED",
+            aggregateType: "branch",
+            aggregateId: branch.branch_id,
+            vendorIds: [String(branch.vendor_id)],
+            payload: {
+                branch_name: branch.branch_name,
+                branch_address: branch.branch_address,
+            },
+        });
+
+        return branch;
     }
 
     /**
@@ -143,9 +153,18 @@ class BranchService {
             );
         }
 
-        await this.findById(branchId);
+        const branch = await this.findById(branchId);
+        const updated = await branchRepository.updateStatus(branchId, branchStatus);
 
-        return branchRepository.updateStatus(branchId, branchStatus);
+        sendEvent({
+            type: "BRANCH_STATUS_CHANGED",
+            aggregateType: "branch",
+            aggregateId: branchId,
+            vendorIds: [String(branch.vendor_id)],
+            payload: { status: branchStatus },
+        });
+
+        return updated;
     }
 
     /**
@@ -156,9 +175,7 @@ class BranchService {
      * @throws {NotFoundError} Si la sucursal no existe
      */
     async deactivate(branchId) {
-        await this.findById(branchId);
-
-        return branchRepository.updateStatus(branchId, "INACTIVE");
+        return this.updateStatus(branchId, "INACTIVE");
     }
 
     /**

@@ -124,8 +124,10 @@ app.use((req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`[Vendor Service] corriendo en puerto ${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+    app.listen(PORT, () => {
+        console.log(`[Vendor Service] corriendo en puerto ${PORT}`);
+    });
+}
 
 module.exports = app;

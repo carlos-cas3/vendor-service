@@ -5,6 +5,7 @@ const {
     NotFoundError,
     ValidationError,
 } = require("../utils/errors");
+const { sendEvent } = require("../clients/analytics.client");
 
 class StaffService {
     /**
@@ -30,6 +31,14 @@ class StaffService {
                 last_name: data.last_name,
                 email: data.email,
                 personal_phone: data.personal_phone,
+            });
+
+            sendEvent({
+                type: "STAFF_CREATED",
+                aggregateType: "staff",
+                aggregateId: staff.staff_id,
+                vendorIds: [String(vendor_id)],
+                payload: { email: staff.email, role_id: staff.role_id },
             });
 
             return staff;
@@ -99,6 +108,15 @@ class StaffService {
         await authClient.updateUser(staff.user_id, data);
 
         const updated = await staffRepository.update(staffId, data);
+
+        sendEvent({
+            type: "STAFF_UPDATED",
+            aggregateType: "staff",
+            aggregateId: staffId,
+            vendorIds: [String(vendor_id)],
+            payload: data,
+        });
+
         return updated;
     }
 
@@ -116,6 +134,15 @@ class StaffService {
         await authClient.updateUserStatus(staff.user_id, "INACTIVE");
 
         const updated = await staffRepository.updateStatus(staffId, "INACTIVE");
+
+        sendEvent({
+            type: "STAFF_STATUS_CHANGED",
+            aggregateType: "staff",
+            aggregateId: staffId,
+            vendorIds: [String(vendor_id)],
+            payload: { status: "INACTIVE" },
+        });
+
         return updated;
     }
 }
