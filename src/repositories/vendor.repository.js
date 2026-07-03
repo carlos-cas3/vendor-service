@@ -111,16 +111,16 @@ class VendorRepository {
         return data;
     }
 
-    // async findByTaxId(vendor_ruc) {
-    //     const { data, error } = await supabase
-    //         .from("vendors")
-    //         .select("*")
-    //         .eq("vendor_ruc", vendor_ruc)
-    //         .maybeSingle();
+    async findByTaxId(vendor_ruc) {
+        const { data, error } = await supabase
+            .from("vendors")
+            .select("*")
+            .eq("vendor_ruc", vendor_ruc)
+            .maybeSingle();
 
-    //     if (error) throw error;
-    //     return data;
-    // }
+        if (error) throw error;
+        return data;
+    }
 
     /**
      * Actualiza parcialmente un proveedor.
