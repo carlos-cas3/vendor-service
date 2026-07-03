@@ -29,10 +29,12 @@ function createAuthToken(overrides = {}) {
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.JWT_SECRET = JWT_SECRET;
+  process.env.INTERNAL_SERVICE_SECRET = "test-internal-secret";
 });
 
 afterAll(() => {
   delete process.env.JWT_SECRET;
+  delete process.env.INTERNAL_SERVICE_SECRET;
 });
 
 describe("GET /api/vendors/staff", () => {
