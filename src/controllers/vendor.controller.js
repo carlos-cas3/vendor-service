@@ -169,6 +169,16 @@ class VendorController {
             next(error);
         }
     }
+
+    async getName(req, res, next) {
+        try {
+            const vendor_id = parseInt(req.params.vendor_id);
+            const result = await vendorService.getVendorName(vendor_id);
+            res.json({ success: true, data: result });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = new VendorController();
