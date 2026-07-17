@@ -202,6 +202,11 @@
             return { vendor_id: vendor.vendor_id, status: vendor.vendor_status };
         }
 
+        async getVendorName(vendor_id) {
+            const vendor = await this.findById(vendor_id);
+            return { vendor_id: vendor.vendor_id, vendor_name: vendor.vendor_name };
+        }
+
         /**
          * Valida los datos requeridos para crear un proveedor.
          *

@@ -16,4 +16,6 @@ router.patch("/:vendor_id/status", json, vendorController.updateStatus);
 
 router.get("/:vendor_id/status", vendorController.getStatus);
 
+router.get("/:vendor_id/name", vendorController.getName);
+
 module.exports = router;
