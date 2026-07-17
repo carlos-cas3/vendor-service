@@ -84,7 +84,7 @@ class StaffService {
      *
      * @param {number} staffId - ID del staff
      * @param {number} vendor_id - ID del vendor
-     * @param {{ first_name?: string, last_name?: string, email?: string, personal_phone?: string, availability_status?: string }} data - Datos a actualizar
+     * @param {{ first_name?: string, last_name?: string, email?: string, personal_phone?: string, availability_status?: string, role_id?: number }} data - Datos a actualizar
      * @returns {Promise<Object>} Staff actualizado
      * @throws {NotFoundError} Si el staff no existe
      * @throws {ConflictError} Si el email ya está registrado para otro staff del mismo vendor
@@ -103,6 +103,10 @@ class StaffService {
                     "El email ya está registrado para otro staff de este vendor",
                 );
             }
+        }
+
+        if (data.role_id && data.role_id !== staff.role_id) {
+            await authClient.updateUserRole(staff.user_id, data.role_id);
         }
 
         await authClient.updateUser(staff.user_id, data);

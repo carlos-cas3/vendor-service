@@ -152,10 +152,27 @@ async function updateUser(userId, data) {
     return response.data.data;
 }
 
+/**
+ * Actualiza el rol de un usuario en auth-service.
+ *
+ * @param {number} userId - ID del usuario en auth-service
+ * @param {number} role_id - Nuevo role_id
+ * @returns {Promise<void>}
+ * @throws {Error} Si el auth-service no responde
+ */
+async function updateUserRole(userId, role_id) {
+    await axios.patch(
+        `${AUTH_URL}/api/ms/users/${userId}/role`,
+        { role_id },
+        { headers, timeout: 5000 },
+    );
+}
+
 module.exports = {
     createUser,
     updateUserStatus,
     createInternalUser,
     getInternalUsers,
     updateUser,
+    updateUserRole,
 };

@@ -21,6 +21,9 @@ const updateStaffSchema = Joi.object({
     availability_status: Joi.string()
         .valid("available", "unavailable")
         .optional(),
+    role_id: Joi.number()
+        .valid(ROLES.SUPERVISOR, ROLES.SELLER)
+        .optional(),
 }).min(1);
 
 const staffIdParamSchema = Joi.object({
