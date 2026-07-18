@@ -8,7 +8,9 @@
     "dev": "nodemon src/app.js",
     "lint": "eslint src/",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "load-test:list": "artillery run load-tests/vendors-list.js",
+    "load-test:branch": "artillery run load-tests/branches-create.js"
   },
   "dependencies": {
     "@supabase/storage-js": "^2.106.0",
@@ -27,6 +29,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "artillery": "^2.0.33",
     "eslint": "^10.6.0",
     "globals": "^17.7.0",
     "jest": "^30.4.2",
